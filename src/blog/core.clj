@@ -40,6 +40,8 @@
 (def list-template    (templates "layout" "list"))
 (def article-template (templates "layout" "article"))
 
+(def article-partial (templates "article"))
+
 ; server endpoints
 
 (defn login [req]
@@ -54,7 +56,9 @@
 
 (defn list-articles [session]
   (println "list")
-  {:body (list-template {:body "some articles..."})})
+  {:body (list-template {:body (apply str (repeat 2 (article-partial)))
+                         :recent-posts [{:title "Another blog post"}
+                                        {:title "First post"}]})})
 
 (defn show-article [id session]
   {:body (article-template {:id id})})

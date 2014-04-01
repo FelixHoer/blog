@@ -1,1 +1,41 @@
-<p>{{body}}</p>
+<div class="row">
+
+    <div class="col-sm-8 blog-main">
+
+        {{{body}}}
+
+        <ul class="pager">
+            <li class="previous"><a href="#">&larr; Older</a></li>
+            <li class="next"><a href="#">Newer &rarr;</a></li>
+        </ul>
+
+    </div><!-- /.blog-main -->
+
+    <div class="col-sm-3 col-sm-offset-1">
+
+        <div class="blog-sidebar">
+            <h4>Recent Posts</h4>
+            <ol class="list-unstyled">
+                {{#recent-posts}}
+                  <li><a href="{{link}}">{{title}}</a></li>
+                {{/recent-posts}}
+            </ol>
+        </div>
+
+        <div class="blog-sidebar">
+            <h4>Archives</h4>
+            <ol class="list-unstyled">
+                <li><a href="#">April 2014</a></li>
+                <li><a href="#">March 2014</a></li>
+                <li><a href="#">February 2014</a></li>
+                <li><a href="#">January 2014</a></li>
+                <li><a href="#">December 2013</a></li>
+                <li><a href="#">November 2013</a></li>
+                <li><a href="#">October 2013</a></li>
+                <li><a href="#">September 2013</a></li>
+            </ol>
+        </div>
+
+    </div>
+
+</div><!-- /.row -->
