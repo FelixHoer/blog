@@ -19,13 +19,26 @@
 (def RECENT_ARTICLES 10)
 (def DATE_PREFIX_LENGTH 7)
 
+(def MONTH_NAMES (.getMonths (java.text.DateFormatSymbols.)))
+
 
 ; helpers
 
 (defn local-redirect [{server :server-name port :server-port} path]
-  (ring-response/redirect (str "http://" server (if port (str ":" port)) path)))
+  (ring-response/redirect (str "http://" server
+                               (if (not (empty? port)) (str ":" port))
+                               path)))
 
-(str nil)
+(defn date-code->text [code]
+  (let [[year m] (string/split code #"-")
+        month (get MONTH_NAMES (- (Integer/parseInt m) 1))]
+    (str month " " year)))
+
+(defn article-code->title [code]
+  (let [title-code (string/join (drop 11 (drop-last 3 code)))
+        words (string/split title-code #"-")
+        capitalized-words (map string/capitalize words)]
+    (string/join " " capitalized-words)))
 
 
 ; templates
@@ -57,41 +70,46 @@
 (defn article-files []
   (let [root (clojure.java.io/file ARTICLES_PATH)
         files (filter #(.isFile %) (file-seq root))]
-    files))
-
-(defn sort-by-name [files]
-  (sort-by #(.getName %) files))
+    (map (fn [f] {:name (.getName f)
+                  :path (.getPath f)})
+         files)))
 
 (defn group-by-month [files]
-  (let [date-prefix-f #(clojure.string/join (take DATE_PREFIX_LENGTH (.getName %)))
+  (let [date-prefix-f #(string/join (take DATE_PREFIX_LENGTH (:name %)))
         grouped-files (group-by date-prefix-f files)]
     grouped-files))
 
 (defn article-data [name]
-  (let [safe-name (clojure.string/join (remove #(= \/ %) name))
+  (let [safe-name (string/join (remove #(= \/ %) name))
         path (str ARTICLES_PATH "/" safe-name)
         file-content (slurp path)
         html (markdown/md-to-html-string file-content)]
     html))
 
 (defn article-page-data [page-num article-files]
-  (let [sorted-files (sort-by-name article-files)
+  (let [sorted-files (sort-by :name article-files)
         pages (partition-all ARTICLES_PER_PAGE sorted-files)
-        page (nth pages page-num)]
-    (map article-data page)))
+        page (nth pages page-num)
+        page-names (map :name page)]
+    (map article-data page-names)))
 
 (defn article-month-data [month article-files]
   (let [month-files (get (group-by-month article-files) month)
-        file-names (map #(.getName %) month-files)]
+        file-names (map :name month-files)]
     (map article-data file-names)))
 
 (defn recent-article-data [article-files]
-  (let [sorted-files (sort-by-name article-files)
-        recent-titles (map #(.getName %) (take RECENT_ARTICLES sorted-files))]
-    recent-titles))
+  (let [sorted-files (sort-by :name article-files)
+        recent-titles (map :name (take RECENT_ARTICLES sorted-files))]
+    (map (fn [f] {:code (string/join (drop-last 3 f) )
+                  :title (article-code->title f)})
+         recent-titles)))
 
 (defn archive-article-data [article-files]
-  (keys (group-by-month article-files)))
+  (let [months (keys (group-by-month article-files))]
+    (map (fn [m] {:code m
+                  :text (date-code->text m)})
+         months)))
 
 
 ; server endpoints
@@ -108,12 +126,20 @@
 
 (defn list-articles [session]
   (println "list")
-  {:body (list-template {:body (apply str (repeat 2 (article-partial)))
-                         :recent-posts [{:title "Another blog post"}
-                                        {:title "First post"}]})})
+  (let [files (article-files)
+        data {:body (string/join (map #(article-partial {:body %})
+                                      (article-page-data 0 files)))
+              :recent-articles (recent-article-data files)
+              :archive-months (archive-article-data files)}]
+    {:body (list-template data)}))
 
 (defn show-article [id session]
-  {:body (article-template {:id id})})
+  (println "show" id)
+  (let [files (article-files)
+        data {:body (article-partial {:body (article-data (str id ".md"))})
+              :recent-articles (recent-article-data files)
+              :archive-months (archive-article-data files)}]
+    {:body (list-template data)}))
 
 
 ; authentication
