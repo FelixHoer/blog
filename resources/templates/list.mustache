@@ -7,8 +7,19 @@
         <div class="row">
             <div class="col-sm-offset-2 col-sm-10">
                 <ul class="pager">
-                    <li class="previous"><a href="#">&larr; Older</a></li>
-                    <li class="next"><a href="#">Newer &rarr;</a></li>
+                    {{#previous-page}}
+                    <li class="previous"><a href="/articles/page/{{previous-page}}">&larr; Newer</a></li>
+                    {{/previous-page}}
+                    {{^previous-page}}
+                    <li class="previous disabled"><a href="#">&larr; Newer</a></li>
+                    {{/previous-page}}
+
+                    {{#next-page}}
+                    <li class="next"><a href="/articles/page/{{next-page}}">Older &rarr;</a></li>
+                    {{/next-page}}
+                    {{^next-page}}
+                    <li class="next disabled"><a href="#">Older &rarr;</a></li>
+                    {{/next-page}}
                 </ul>
             </div>
         </div>

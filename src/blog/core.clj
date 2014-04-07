@@ -55,6 +55,16 @@
 
 (def parse-article-filename (comp parse-article-code filename->code))
 
+(defn paginate [page-num items-per-page coll]
+  (let [pages (partition-all items-per-page coll)
+        page-items (nth pages page-num nil)
+        has-next (not (nil? (nth pages (inc page-num) nil)))
+        has-previous (> page-num 0)]
+    (merge {:current-page page-num
+            :items page-items}
+           (if has-previous {:previous-page (dec page-num)})
+           (if has-next {:next-page (inc page-num)}))))
+
 
 ; templates
 
@@ -103,9 +113,8 @@
 
 (defn article-page-data [page-num article-files]
   (let [sorted-files (reverse (sort article-files))
-        pages (partition-all ARTICLES_PER_PAGE sorted-files)
-        page (nth pages page-num)]
-    (map article-data page)))
+        data (paginate page-num ARTICLES_PER_PAGE sorted-files)]
+    (update-in data [:items] #(map article-data %))))
 
 ;(article-page-data 0 (article-files))
 
@@ -130,6 +139,7 @@
 ;(archive-article-data (article-files))
 
 
+
 ; server endpoints
 
 (defn login [req]
@@ -145,9 +155,12 @@
 (defn list-articles-page [page session]
   (println "list")
   (let [files (article-files)
-        data {:body (string/join (map article-partial (article-page-data page files)))
+        page (article-page-data page files)
+        data {:body (string/join (map article-partial (:items page)))
               :recent-articles (recent-article-data files)
-              :archive-months (archive-article-data files)}]
+              :archive-months (archive-article-data files)
+              :previous-page (:previous-page page)
+              :next-page (:next-page page)}]
     {:body (list-template data)}))
 
 (defn list-articles-month [month session]
