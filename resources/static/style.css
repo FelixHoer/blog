@@ -1,8 +1,13 @@
+html {
+  position: relative;
+  min-height: 100%;
+}
+
 body {
   font-family: Georgia, "Times New Roman", Times, serif;
   color: #555;
   padding: 80px 0;
-  position: relative;
+  margin-bottom: 60px;
 }
 
 h1, .h1,
@@ -15,6 +20,11 @@ h6, .h6 {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: normal;
   color: #333;
+}
+
+.blog-main {
+  font-size: 18px;
+  line-height: 1.5;
 }
 
 .blog-main .blog-post {
@@ -37,9 +47,8 @@ h6, .h6 {
   }
 }
 
-.blog-main {
-  font-size: 18px;
-  line-height: 1.5;
+.blog-main p {
+  text-align: justify;
 }
 
 .blog-sidebar {
@@ -48,12 +57,13 @@ h6, .h6 {
 }
 
 footer {
-  padding: 20px 0;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 60px;
+  line-height: 60px;
   color: #999;
   text-align: center;
   background-color: #f9f9f9;
   border-top: 1px solid #e5e5e5;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
 }
