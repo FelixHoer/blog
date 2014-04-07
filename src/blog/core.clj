@@ -65,6 +65,11 @@
            (if has-previous {:previous-page (dec page-num)})
            (if has-next {:next-page (inc page-num)}))))
 
+(defn pagination-urls [page-url-f page]
+  (let [selected-map (select-keys page #{:previous-page :next-page})
+        mapped-urls (map (fn [[k v]] [k (page-url-f v)]) selected-map)]
+    (into {} mapped-urls)))
+
 
 ; templates
 
@@ -118,26 +123,31 @@
 
 ;(article-page-data 0 (article-files))
 
-(defn article-month-data [month article-files]
+(defn article-month-page-data [month page-num article-files]
   (let [month-files (get (group-by-month article-files) month)]
-    (map article-data month-files)))
+    (article-page-data page-num month-files)))
 
-;(article-month-data "2014-04" (article-files))
+;(article-month-page-data "2014-04" 0 (article-files))
 
-(defn recent-article-data [article-files]
+(defn sidebar-recent-article-data [article-files]
   (let [sorted-files (reverse (sort article-files))
         recent-files (take RECENT_ARTICLES sorted-files)]
     (map parse-article-filename recent-files)))
 
-;(recent-article-data (article-files))
+;(sidebar-recent-article-data (article-files))
 
-(defn archive-article-data [article-files]
+(defn sidebar-archive-data [article-files]
   (let [months (keys (group-by-month article-files))
         sorted-months (reverse (sort months))]
     (map parse-article-code sorted-months)))
 
-;(archive-article-data (article-files))
+;(sidebar-archive-data (article-files))
 
+(defn sidebar-data [article-files]
+  {:recent-articles (sidebar-recent-article-data article-files)
+   :archive-months (sidebar-archive-data article-files)})
+
+;(sidebar-data (article-files))
 
 
 ; server endpoints
@@ -153,22 +163,21 @@
     (assoc-in resp [:session :logged-in] true)))
 
 (defn list-articles-page [page session]
-  (println "list")
+  (println "list all" page)
   (let [files (article-files)
         page (article-page-data page files)
-        data {:body (string/join (map article-partial (:items page)))
-              :recent-articles (recent-article-data files)
-              :archive-months (archive-article-data files)
-              :previous-page (:previous-page page)
-              :next-page (:next-page page)}]
+        data (merge (pagination-urls #(str "/articles/page/" %) page)
+                    {:body (string/join (map article-partial (:items page)))}
+                    (sidebar-data files))]
     {:body (list-template data)}))
 
-(defn list-articles-month [month session]
-  (println "list")
+(defn list-articles-month-page [month page session]
+  (println "list month" month page)
   (let [files (article-files)
-        data {:body (string/join (map article-partial (article-month-data month files)))
-              :recent-articles (recent-article-data files)
-              :archive-months (archive-article-data files)}]
+        page (article-month-page-data month page files)
+        data (merge (pagination-urls #(str "/articles/month/" month "/page/" %) page)
+                    {:body (string/join (map article-partial (:items page)))}
+                    (sidebar-data files))]
     {:body (list-template data)}))
 
 (defn show-article [code session]
@@ -202,13 +211,24 @@
     (process-login req))
   (GET  "/"
         {session :session :as req}
-    (authenticated req (list-articles-page 0 session)))
+    (authenticated req
+      (list-articles-page 0 session)))
+  (GET  "/articles"
+        {session :session :as req}
+    (authenticated req
+      (list-articles-page 0 session)))
   (GET  "/articles/page/:page"
         {{page :page} :params session :session :as req}
-    (authenticated req (list-articles-page (Integer/parseInt page) session)))
+    (authenticated req
+      (list-articles-page (Integer/parseInt page) session)))
   (GET  "/articles/month/:month"
         {{month :month} :params session :session :as req}
-    (authenticated req (list-articles-month month session)))
+    (authenticated req
+      (list-articles-month-page month 0 session)))
+  (GET  "/articles/month/:month/page/:page"
+        {{month :month page :page} :params session :session :as req}
+    (authenticated req
+      (list-articles-month-page month (Integer/parseInt page) session)))
   (GET  "/articles/:code"
         {{code :code} :params session :session :as req}
     (authenticated req (show-article code session)))
