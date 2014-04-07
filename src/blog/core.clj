@@ -142,10 +142,18 @@
   (let [resp (local-redirect req "/")]
     (assoc-in resp [:session :logged-in] true)))
 
-(defn list-articles [page session]
+(defn list-articles-page [page session]
   (println "list")
   (let [files (article-files)
         data {:body (string/join (map article-partial (article-page-data page files)))
+              :recent-articles (recent-article-data files)
+              :archive-months (archive-article-data files)}]
+    {:body (list-template data)}))
+
+(defn list-articles-month [month session]
+  (println "list")
+  (let [files (article-files)
+        data {:body (string/join (map article-partial (article-month-data month files)))
               :recent-articles (recent-article-data files)
               :archive-months (archive-article-data files)}]
     {:body (list-template data)}))
@@ -173,17 +181,23 @@
 ; routes
 
 (defroutes blog-routes
-  (GET  "/login" {:as req}
+  (GET  "/login"
+        {:as req}
     (login req))
-  (POST "/login" {:as req}
+  (POST "/login"
+        {:as req}
     (process-login req))
-  (GET  "/" {session :session :as req}
-    (authenticated req (list-articles 0 session)))
-  (GET  "/articles/page/:page" {{page :page} :params session :session :as req}
-    (authenticated req (list-articles (Integer/parseInt page) session)))
-  (GET  "/articles/month/:month" {{month :month} :params session :session :as req}
-    (println "TODO"))
-  (GET  "/articles/:code" {{code :code} :params session :session :as req}
+  (GET  "/"
+        {session :session :as req}
+    (authenticated req (list-articles-page 0 session)))
+  (GET  "/articles/page/:page"
+        {{page :page} :params session :session :as req}
+    (authenticated req (list-articles-page (Integer/parseInt page) session)))
+  (GET  "/articles/month/:month"
+        {{month :month} :params session :session :as req}
+    (authenticated req (list-articles-month month session)))
+  (GET  "/articles/:code"
+        {{code :code} :params session :session :as req}
     (authenticated req (show-article code session)))
   (route/resources "/" {:root STATIC_RESOURCE_PATH})
   (route/not-found
