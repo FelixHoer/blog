@@ -4,10 +4,15 @@
 
         {{{body}}}
 
-        <ul class="pager">
-            <li class="previous"><a href="#">&larr; Older</a></li>
-            <li class="next"><a href="#">Newer &rarr;</a></li>
-        </ul>
+        <div class="row blog-post">
+            <div class="col-sm-offset-2 col-sm-10">
+                <ul class="pager">
+                    <li class="previous"><a href="#">&larr; Older</a></li>
+                    <li class="next"><a href="#">Newer &rarr;</a></li>
+                </ul>
+            </div>
+        </div>
+
 
     </div><!-- /.blog-main -->
 
@@ -17,7 +22,7 @@
             <h4>Recent Posts</h4>
             <ol class="list-unstyled">
                 {{#recent-articles}}
-                <li><a href="/article/{{code}}">{{title}}</a></li>
+                <li><a href="/articles/{{code}}">{{title}}</a></li>
                 {{/recent-articles}}
             </ol>
         </div>
@@ -26,7 +31,7 @@
             <h4>Archives</h4>
             <ol class="list-unstyled">
                 {{#archive-months}}
-                <li><a href="/articles/month/{{code}}">{{text}}</a></li>
+                <li><a href="/articles/month/{{code}}">{{month-name}} {{year}}</a></li>
                 {{/archive-months}}
             </ol>
         </div>

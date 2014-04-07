@@ -18,6 +18,8 @@
 (def ARTICLES_PER_PAGE 5)
 (def RECENT_ARTICLES 10)
 (def DATE_PREFIX_LENGTH 7)
+(def EXTENSION ".md")
+(def EXTENSION_LENGTH (count EXTENSION))
 
 (def MONTH_NAMES (.getMonths (java.text.DateFormatSymbols.)))
 
@@ -26,19 +28,32 @@
 
 (defn local-redirect [{server :server-name port :server-port} path]
   (ring-response/redirect (str "http://" server
-                               (if (not (empty? port)) (str ":" port))
+                               (if (not (empty? (str port))) (str ":" port))
                                path)))
 
-(defn date-code->text [code]
-  (let [[year m] (string/split code #"-")
-        month (get MONTH_NAMES (- (Integer/parseInt m) 1))]
-    (str month " " year)))
+(defn code->filename [code]
+  (str code EXTENSION))
 
-(defn article-code->title [code]
-  (let [title-code (string/join (drop 11 (drop-last 3 code)))
-        words (string/split title-code #"-")
-        capitalized-words (map string/capitalize words)]
-    (string/join " " capitalized-words)))
+(defn filename->code [filename]
+  (string/join (drop-last EXTENSION_LENGTH filename)))
+
+(defn month-name [str-index]
+  (get MONTH_NAMES (dec (Integer/parseInt str-index))))
+
+(defn parse-article-code
+  "Extracts the parts of the given code into a map.
+   Format for the code parameter: yyyy-mm-dd[-title-with-dashes]
+   Returns a map with keys :year, :month, :day, :month-name (name of the month),
+   :title (every word is capitalized) and given :code"
+  [code]
+  (let [parts (string/split code #"-")
+        [date-parts title-parts] (split-at 3 parts)]
+    (merge (zipmap [:year :month :day] date-parts)
+           {:month-name (month-name (second date-parts))
+            :title (string/join " " (map string/capitalize title-parts))
+            :code code})))
+
+(def parse-article-filename (comp parse-article-code filename->code))
 
 
 ; templates
@@ -70,12 +85,10 @@
 (defn article-files []
   (let [root (clojure.java.io/file ARTICLES_PATH)
         files (filter #(.isFile %) (file-seq root))]
-    (map (fn [f] {:name (.getName f)
-                  :path (.getPath f)})
-         files)))
+    (map #(.getName %) files)))
 
 (defn group-by-month [files]
-  (let [date-prefix-f #(string/join (take DATE_PREFIX_LENGTH (:name %)))
+  (let [date-prefix-f #(string/join (take DATE_PREFIX_LENGTH %))
         grouped-files (group-by date-prefix-f files)]
     grouped-files))
 
@@ -84,59 +97,63 @@
         path (str ARTICLES_PATH "/" safe-name)
         file-content (slurp path)
         html (markdown/md-to-html-string file-content)]
-    html))
+    (merge (parse-article-filename name) {:body html})))
+
+;(article-data "2014-04-02-first-post.md")
 
 (defn article-page-data [page-num article-files]
-  (let [sorted-files (sort-by :name article-files)
+  (let [sorted-files (reverse (sort article-files))
         pages (partition-all ARTICLES_PER_PAGE sorted-files)
-        page (nth pages page-num)
-        page-names (map :name page)]
-    (map article-data page-names)))
+        page (nth pages page-num)]
+    (map article-data page)))
+
+;(article-page-data 0 (article-files))
 
 (defn article-month-data [month article-files]
-  (let [month-files (get (group-by-month article-files) month)
-        file-names (map :name month-files)]
-    (map article-data file-names)))
+  (let [month-files (get (group-by-month article-files) month)]
+    (map article-data month-files)))
+
+;(article-month-data "2014-04" (article-files))
 
 (defn recent-article-data [article-files]
-  (let [sorted-files (sort-by :name article-files)
-        recent-titles (map :name (take RECENT_ARTICLES sorted-files))]
-    (map (fn [f] {:code (string/join (drop-last 3 f) )
-                  :title (article-code->title f)})
-         recent-titles)))
+  (let [sorted-files (reverse (sort article-files))
+        recent-files (take RECENT_ARTICLES sorted-files)]
+    (map parse-article-filename recent-files)))
+
+;(recent-article-data (article-files))
 
 (defn archive-article-data [article-files]
-  (let [months (keys (group-by-month article-files))]
-    (map (fn [m] {:code m
-                  :text (date-code->text m)})
-         months)))
+  (let [months (keys (group-by-month article-files))
+        sorted-months (reverse (sort months))]
+    (map parse-article-code sorted-months)))
+
+;(archive-article-data (article-files))
 
 
 ; server endpoints
 
 (defn login [req]
-  (println "login" req)
+  (println "login")
   {:body (login-template {})})
 
 (defn process-login [{session :session params :params :as req}]
-  (println "process" req)
+  (println "process")
   ; TODO check the received credentials
   (let [resp (local-redirect req "/")]
     (assoc-in resp [:session :logged-in] true)))
 
-(defn list-articles [session]
+(defn list-articles [page session]
   (println "list")
   (let [files (article-files)
-        data {:body (string/join (map #(article-partial {:body %})
-                                      (article-page-data 0 files)))
+        data {:body (string/join (map article-partial (article-page-data page files)))
               :recent-articles (recent-article-data files)
               :archive-months (archive-article-data files)}]
     {:body (list-template data)}))
 
-(defn show-article [id session]
-  (println "show" id)
+(defn show-article [code session]
+  (println "show" code)
   (let [files (article-files)
-        data {:body (article-partial {:body (article-data (str id ".md"))})
+        data {:body (article-partial (article-data (code->filename code)))
               :recent-articles (recent-article-data files)
               :archive-months (archive-article-data files)}]
     {:body (list-template data)}))
@@ -161,9 +178,13 @@
   (POST "/login" {:as req}
     (process-login req))
   (GET  "/" {session :session :as req}
-    (authenticated req (list-articles session)))
-  (GET  "/article/:id" {{id :id} :params session :session :as req}
-    (authenticated req (show-article id session)))
+    (authenticated req (list-articles 0 session)))
+  (GET  "/articles/page/:page" {{page :page} :params session :session :as req}
+    (authenticated req (list-articles (Integer/parseInt page) session)))
+  (GET  "/articles/month/:month" {{month :month} :params session :session :as req}
+    (println "TODO"))
+  (GET  "/articles/:code" {{code :code} :params session :session :as req}
+    (authenticated req (show-article code session)))
   (route/resources "/" {:root STATIC_RESOURCE_PATH})
   (route/not-found
     "Page not found"))

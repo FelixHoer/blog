@@ -17,13 +17,24 @@ h6, .h6 {
   color: #333;
 }
 
-.blog-post {
+.blog-main .blog-post {
   margin-bottom: 60px;
 }
 
-.blog-post-title {
-  margin-bottom: 5px;
-  font-size: 40px;
+@media (max-width: 768px) {
+  .blog-main .blog-post .date div,
+  .blog-main .blog-post .date h1 {
+    display: inline-block;
+  }
+}
+
+@media (min-width: 768px) {
+  .blog-main .blog-post .date {
+    text-align: right;
+    font-weight: bold;
+    color: #aaa;
+    line-height: 1.5;
+  }
 }
 
 .blog-main {
