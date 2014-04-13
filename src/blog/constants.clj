@@ -8,12 +8,3 @@
 
 (def ARTICLES_PER_PAGE 5)
 (def RECENT_ARTICLES 10)
-
-(def DATE_PREFIX_LENGTH 7)
-
-(def EXTENSION ".md")
-(def EXTENSION_LENGTH (count EXTENSION))
-
-; configuration
-
-(def DROPBOX_USER_ID "58952800")

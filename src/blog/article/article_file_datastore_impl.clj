@@ -5,6 +5,14 @@
             [markdown.core :as markdown]))
 
 
+; constants
+
+(def DATE_PREFIX_LENGTH 7)
+
+(def EXTENSION ".md")
+(def EXTENSION_LENGTH (count EXTENSION))
+
+
 ; helper
 
 (defn group-by-month [files]
@@ -34,9 +42,9 @@
 (defn article-data [name]
   (let [safe-name (string/join (remove #(= \/ %) name))
         path (str ARTICLES_PATH "/" safe-name)
-        file-content (slurp path)
-        html (markdown/md-to-html-string file-content)]
-    (merge (parse-article-filename name) {:body html})))
+        file-content (slurp path)]
+    (merge (parse-article-filename name)
+           {:body file-content})))
 
 
 ; paginated main list
@@ -71,7 +79,7 @@
 ; component
 
 (defn article-impl [this code]
-  (merge {:items (article-data (code->filename code))}
+  (merge {:items [(article-data (code->filename code))]}
          (sidebar-data (article-files))))
 
 (defn article-page-impl [this page-num]

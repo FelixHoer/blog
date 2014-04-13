@@ -2,27 +2,45 @@
   (:use compojure.core
         blog.handler
         [blog.article.article-datastore :only [article-page article-month-page article]]
-        [blog.article.helpers :only [pagination-urls]])
+        [blog.article.helpers :only [pagination-urls]]
+        [blog.article-plugin.plugin :only [process]])
   (:require [clojure.string :as string]))
+
+
+; plugins
+
+(defn plugin-seq [component]
+  (map #(% component) (:plugins component)))
+
+(defn apply-plugins [body plugins]
+  (reduce (fn [current-body plugin] (process plugin current-body))
+          body
+          plugins))
+
+(defn apply-plugins-page [component page]
+  (let [plugins (plugin-seq component)
+        transform-body #(update-in % [:body] apply-plugins plugins)]
+    (update-in page [:items] #(map transform-body %))))
 
 
 ; server endpoints
 
-(defn list-articles-page [{db :db} page-num]
+(defn list-articles-page [{db :db :as component} page-num]
   (let [page (article-page db page-num)]
-    {:data (merge page
+    {:data (merge (apply-plugins-page component page)
                   (pagination-urls #(str "/articles/page/" %) page))
      :template :article-list}))
 
-(defn list-articles-month-page [{db :db} month page-num]
+(defn list-articles-month-page [{db :db :as component} month page-num]
   (let [page (article-month-page db month page-num)]
-    {:data (merge page
+    {:data (merge (apply-plugins-page component page)
                   (pagination-urls #(str "/articles/month/" month "/page/" %) page))
      :template :article-list}))
 
-(defn show-article [{db :db} code]
-  {:data (article db code)
-   :template :article-list})
+(defn show-article [{db :db :as component} code]
+  (let [page (article db code)]
+    {:data (apply-plugins-page component page)
+     :template :article-list}))
 
 
 ; routes
