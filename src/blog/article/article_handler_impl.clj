@@ -1,13 +1,9 @@
-(ns blog.content.core
-  (:use compojure.core)
-  (:use blog.handler)
-  (:use blog.constants)
-  (:use blog.template)
-  (:use blog.content.helpers)
-  (:use blog.content.data)
-  (:use [blog.auth.core :only [authenticated]])
-  (:require [clojure.string :as string]
-            [com.stuartsierra.component :as component]))
+(ns blog.article.article-handler-impl
+  (:use compojure.core
+        blog.handler
+        blog.article.article-datastore
+        blog.article.helpers)
+  (:require [clojure.string :as string]))
 
 
 ; server endpoints
@@ -63,22 +59,18 @@
 
 ; component
 
-(defrecord ArticleHandler [db next]
-  component/Lifecycle
-    (start [this]
-      (println "start")
-      this)
-    (stop [this]
-      (println "stop")
-      this)
-  Handler
-    (handle [this req]
-      (println "article-handler" req)
-      (let [extended-req (assoc req :component this)
-            resp (content-routes extended-req)
-            next-req (update-in req [:resp] merge resp)]
-        (handle next next-req))))
+(defn start-impl [this]
+  (println "start")
+  this)
 
-(defn new-article-handler []
-  (map->ArticleHandler {}))
+(defn stop-impl [this]
+  (println "stop")
+  this)
 
+(defn handle-impl [this req]
+  (println "article-handler" req)
+  (let [extended-req (assoc req :component this)
+        resp (content-routes extended-req)
+        next (:next  this)
+        next-req (update-in req [:resp] merge resp)]
+    (handle next next-req)))

@@ -1,5 +1,5 @@
 (ns blog.theme.theme-handler-impl
-  (:use [blog.template :only [templates]]
+  (:use [blog.theme.template :only [templates]]
         blog.constants
         [compojure.core :only [defroutes]])
   (:require [compojure.route :as route]))

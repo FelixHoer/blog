@@ -1,7 +1,7 @@
 (ns blog.core
   (:use blog.constants)
-  (:use blog.content.core)
-  (:use blog.content.data)
+  (:use blog.article.article-handler)
+  (:use blog.article.article-file-datastore)
   (:use blog.theme.theme-handler)
   (:use blog.web-server.web-server)
   (:require [com.stuartsierra.component :as component]))
@@ -17,8 +17,8 @@
    ;                                 {:db :authentication-datastore
    ;                                  :next :article-handler
    ;                                  :final :theme-handler})
-   :article-datastore (new-article-file-datastore)
-   :article-handler (component/using (new-article-handler)
+   :article-datastore (map->ArticleFileDatastore {})
+   :article-handler (component/using (map->ArticleHandler {})
                                      {:db :article-datastore
                                       ;:next :comment-handler
                                       :next :theme-handler})
@@ -30,4 +30,4 @@
 (defn -main []
   (component/start system))
 
-;(-main)
+(-main)

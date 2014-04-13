@@ -1,4 +1,4 @@
-(ns blog.content.helpers
+(ns blog.article.helpers
   (:use blog.constants)
   (:require [clojure.string :as string]))
 

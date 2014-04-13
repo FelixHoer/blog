@@ -1,4 +1,4 @@
-(ns blog.template
+(ns blog.theme.template
   (:use blog.constants)
   (:require [clostache.parser :as clostache]))
 

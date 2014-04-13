@@ -1,6 +1,6 @@
-(ns blog.content.data
+(ns blog.article.article-file-datastore-impl
   (:use blog.constants)
-  (:use blog.content.helpers)
+  (:use blog.article.helpers)
   (:require [clojure.string :as string]
             [markdown.core :as markdown]))
 
@@ -71,27 +71,18 @@
 
 ;(sidebar-data (article-files))
 
-(defprotocol ArticleDatastore
-  (article [this name])
-  (article-page [this page-num])
-  (article-month-page [this month page-num]))
 
+(defn article-impl [this name]
+  (merge {:items (article-data name)}
+         (sidebar-data (article-files))))
 
-(defrecord ArticleFileDatastore []
-  ArticleDatastore
-    (article [this name]
-      (merge {:items (article-data name)}
-             (sidebar-data (article-files))))
+(defn article-page-impl [this page-num]
+  (let [files (article-files)]
+    (merge (article-page-data page-num files)
+           (sidebar-data files))))
 
-    (article-page [this page-num]
-      (let [files (article-files)]
-        (merge (article-page-data page-num files)
-               (sidebar-data files))))
+(defn article-month-page-impl [this month page-num]
+  (let [files (article-files)]
+    (merge (article-month-page-data month page-num files)
+           (sidebar-data files))))
 
-    (article-month-page [this month page-num]
-      (let [files (article-files)]
-        (merge (article-month-page-data month page-num files)
-               (sidebar-data files)))))
-
-(defn new-article-file-datastore []
-  (map->ArticleFileDatastore {}))
