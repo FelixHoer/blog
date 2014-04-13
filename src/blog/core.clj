@@ -10,6 +10,7 @@
         blog.web-server.web-server
         blog.article-plugin.dropbox
         blog.article-plugin.smiley
+        blog.article-plugin.google-map
         blog.article-plugin.markdown)
   (:require [com.stuartsierra.component :as component]))
 
@@ -20,6 +21,9 @@
 (def dropbox-plugin (map->DropboxPlugin {:user-id DROPBOX_USER_ID}))
 
 (def smiley-plugin (map->SmileyPlugin {}))
+
+(def GOOGLE_MAP_APP_KEY "APP-KEY")
+(def google-map-plugin (map->GoogleMapPlugin {:app-key GOOGLE_MAP_APP_KEY}))
 
 (def markdown-plugin (map->MarkdownPlugin {}))
 
@@ -37,13 +41,15 @@
                                    :final :theme-handler})
    :dropbox-plugin dropbox-plugin
    :smiley-plugin smiley-plugin
+   :google-map-plugin google-map-plugin
    :markdown-plugin markdown-plugin
    :article-datastore (map->ArticleFileDatastore {})
-   :article-handler (component/using (map->ArticleHandler {:plugins [:dropbox-plugin :smiley-plugin :markdown-plugin]})
+   :article-handler (component/using (map->ArticleHandler {:plugins [:dropbox-plugin :smiley-plugin :google-map-plugin :markdown-plugin]})
                                      {:db :article-datastore
                                       :markdown-plugin :markdown-plugin
                                       :dropbox-plugin :dropbox-plugin
                                       :smiley-plugin :smiley-plugin
+                                      :google-map-plugin :google-map-plugin
                                       ;:next :comment-handler
                                       :next :theme-handler})
    ;:comment-datastore (map->CommentSQLDatastore {})
