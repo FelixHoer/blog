@@ -31,6 +31,10 @@ h6, .h6 {
   margin-bottom: 60px;
 }
 
+.blog-main .blog-post img {
+  max-width: 100%;
+}
+
 @media (max-width: 768px) {
   .blog-main .blog-post .date div,
   .blog-main .blog-post .date h1 {
