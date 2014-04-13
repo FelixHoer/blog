@@ -10,12 +10,6 @@
 
 ; helpers
 
-(defn code->filename [code]
-  (str code EXTENSION))
-
-(defn filename->code [filename]
-  (string/join (drop-last EXTENSION_LENGTH filename)))
-
 (defn month-name [str-index]
   (get MONTH_NAMES (dec (Integer/parseInt str-index))))
 
@@ -31,8 +25,6 @@
            {:month-name (month-name (second date-parts))
             :title (string/join " " (map string/capitalize title-parts))
             :code code})))
-
-(def parse-article-filename (comp parse-article-code filename->code))
 
 
 ; pagination

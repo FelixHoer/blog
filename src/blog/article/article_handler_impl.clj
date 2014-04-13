@@ -1,8 +1,8 @@
 (ns blog.article.article-handler-impl
   (:use compojure.core
         blog.handler
-        blog.article.article-datastore
-        blog.article.helpers)
+        [blog.article.article-datastore :only [article-page article-month-page article]]
+        [blog.article.helpers :only [pagination-urls]])
   (:require [clojure.string :as string]))
 
 
@@ -20,9 +20,8 @@
                   (pagination-urls #(str "/articles/month/" month "/page/" %) page))
      :template :article-list}))
 
-; TODO move code->filename to the db
 (defn show-article [{db :db} code]
-  {:data (article db (code->filename code))
+  {:data (article db code)
    :template :article-list})
 
 

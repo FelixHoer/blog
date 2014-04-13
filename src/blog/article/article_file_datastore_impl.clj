@@ -12,6 +12,14 @@
         grouped-files (group-by date-prefix-f files)]
     grouped-files))
 
+(defn code->filename [code]
+  (str code EXTENSION))
+
+(defn filename->code [filename]
+  (string/join (drop-last EXTENSION_LENGTH filename)))
+
+(def parse-article-filename (comp parse-article-code filename->code))
+
 
 ; list of article names
 
@@ -62,8 +70,8 @@
 
 ; component
 
-(defn article-impl [this name]
-  (merge {:items (article-data name)}
+(defn article-impl [this code]
+  (merge {:items (article-data (code->filename code))}
          (sidebar-data (article-files))))
 
 (defn article-page-impl [this page-num]

@@ -5,8 +5,8 @@
 
 (defrecord ArticleFileDatastore []
   ArticleDatastore
-    (article [this name]
-      ((var article-impl) this name))
+    (article [this code]
+      ((var article-impl) this code))
     (article-page [this page-num]
       ((var article-page-impl) this page-num))
     (article-month-page [this month page-num]
