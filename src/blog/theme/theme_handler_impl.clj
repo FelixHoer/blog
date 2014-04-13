@@ -5,15 +5,20 @@
   (:require [compojure.route :as route]))
 
 
-(def TEMPLATES {:article-list (templates "layout" "list")})
+(def TEMPLATES {:article-list (templates "layout" "list")
+                :login        (templates "layout" "login")})
 
 (defroutes static-routes
   (route/resources "/" {:root STATIC_RESOURCE_PATH})
   (route/not-found "Page not found"))
 
-(defn handle-impl [this req]
+(defn handle-impl [this {resp :resp :as req}]
   (println "themer" req)
-  (let [{{data :data template-key :template} :resp} req]
-    (if template-key
-      {:resp {:body ((template-key TEMPLATES) data)}}
-      {:resp (static-routes req)})))
+  (cond
+    (:template resp)
+      (let [{template-key :template data :data} resp]
+        {:resp {:body ((template-key TEMPLATES) data)}})
+    (:body resp)
+      {:resp resp}
+    :else
+      {:resp (static-routes req)}))
