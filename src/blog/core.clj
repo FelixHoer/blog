@@ -9,14 +9,22 @@
         blog.theme.theme-handler
         blog.web-server.web-server
         blog.article-plugin.dropbox
+        blog.article-plugin.smiley
         blog.article-plugin.markdown)
   (:require [com.stuartsierra.component :as component]))
 
 
+; plugins
+
 (def DROPBOX_USER_ID "58952800")
 (def dropbox-plugin (map->DropboxPlugin {:user-id DROPBOX_USER_ID}))
 
+(def smiley-plugin (map->SmileyPlugin {}))
+
 (def markdown-plugin (map->MarkdownPlugin {}))
+
+
+; system
 
 (def system
   (component/system-map
@@ -28,12 +36,14 @@
                                    :next :article-handler
                                    :final :theme-handler})
    :dropbox-plugin dropbox-plugin
+   :smiley-plugin smiley-plugin
    :markdown-plugin markdown-plugin
    :article-datastore (map->ArticleFileDatastore {})
-   :article-handler (component/using (map->ArticleHandler {:plugins [:dropbox-plugin :markdown-plugin]})
+   :article-handler (component/using (map->ArticleHandler {:plugins [:dropbox-plugin :smiley-plugin :markdown-plugin]})
                                      {:db :article-datastore
                                       :markdown-plugin :markdown-plugin
                                       :dropbox-plugin :dropbox-plugin
+                                      :smiley-plugin :smiley-plugin
                                       ;:next :comment-handler
                                       :next :theme-handler})
    ;:comment-datastore (map->CommentSQLDatastore {})
@@ -41,6 +51,9 @@
    ;                                  {:db :comment-datastore
    ;                                   :next :theme-handler})
    :theme-handler (map->ThemeHandler {})))
+
+
+; main
 
 (defn -main []
   (component/start system))
