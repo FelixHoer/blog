@@ -1,26 +1,33 @@
 (ns blog.core
-  (:use ring.adapter.jetty)
   (:use blog.constants)
   (:use blog.content.core)
-  (:use blog.auth.core)
-  (:use [compojure.core :only [defroutes]])
-  (:require [ring.middleware.session :as session]
-            [ring.middleware.params :as params]
-            [compojure.route :as route]))
+  (:use blog.content.data)
+  (:use blog.theme.theme-handler)
+  (:use blog.web-server.web-server)
+  (:require [com.stuartsierra.component :as component]))
 
-(defroutes blog-routes
-  (var auth-routes)
-  (var content-routes)
-  (route/resources "/" {:root STATIC_RESOURCE_PATH})
-  (route/not-found "Page not found"))
 
-(def request-handler
-  (-> blog-routes
-      (session/wrap-session)
-      (params/wrap-params)))
+(def system
+  (component/system-map
+   :web-server (component/using (map->WebServer {})
+                                ;{:next :authentication}
+                                {:next :article-handler})
+   ;:authentication-datastore (new-authentication-datastore)
+   ;:authentication (component/using (new-authentication)
+   ;                                 {:db :authentication-datastore
+   ;                                  :next :article-handler
+   ;                                  :final :theme-handler})
+   :article-datastore (new-article-file-datastore)
+   :article-handler (component/using (new-article-handler)
+                                     {:db :article-datastore
+                                      ;:next :comment-handler
+                                      :next :theme-handler})
+   ;:comment-datastore (new-comment-datastore)
+   ;:comment-handler (component/using (new-comment-handler)
+   ;                                  {:db :comment-datastore})
+   :theme-handler (map->ThemeHandler {})))
 
-(defonce server
-  (run-jetty (var request-handler) {:port 8080 :join? false}))
+(defn -main []
+  (component/start system))
 
-(defn -main [port]
-  (println "main"))
+;(-main)

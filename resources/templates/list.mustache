@@ -2,7 +2,18 @@
 
     <div class="col-sm-8 blog-main">
 
-        {{{body}}}
+        {{#items}}
+        <div class="row blog-post">
+            <div class="date col-sm-2">
+                <h1>{{day}}</h1>
+                <div>{{month-name}}</div>
+                <div>{{year}}</div>
+            </div>
+            <div class="col-sm-10">
+                {{{body}}}
+            </div>
+        </div><!-- /.blog-post -->
+        {{/items}}
 
         <div class="row">
             <div class="col-sm-offset-2 col-sm-10">

@@ -70,3 +70,28 @@
    :archive-months (sidebar-archive-data article-files)})
 
 ;(sidebar-data (article-files))
+
+(defprotocol ArticleDatastore
+  (article [this name])
+  (article-page [this page-num])
+  (article-month-page [this month page-num]))
+
+
+(defrecord ArticleFileDatastore []
+  ArticleDatastore
+    (article [this name]
+      (merge {:items (article-data name)}
+             (sidebar-data (article-files))))
+
+    (article-page [this page-num]
+      (let [files (article-files)]
+        (merge (article-page-data page-num files)
+               (sidebar-data files))))
+
+    (article-month-page [this month page-num]
+      (let [files (article-files)]
+        (merge (article-month-page-data month page-num files)
+               (sidebar-data files)))))
+
+(defn new-article-file-datastore []
+  (map->ArticleFileDatastore {}))

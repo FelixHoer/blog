@@ -1,73 +1,84 @@
 (ns blog.content.core
   (:use compojure.core)
+  (:use blog.handler)
   (:use blog.constants)
   (:use blog.template)
   (:use blog.content.helpers)
   (:use blog.content.data)
   (:use [blog.auth.core :only [authenticated]])
-  (:require [clojure.string :as string]))
-
-
-; templates
-
-(def list-template    (templates "layout" "list"))
-(def article-template (templates "layout" "article"))
-
-(def article-partial (templates "article"))
+  (:require [clojure.string :as string]
+            [com.stuartsierra.component :as component]))
 
 
 ; server endpoints
 
-(defn list-articles-page [page session]
-  (println "list all" page)
-  (let [files (article-files)
-        page (article-page-data page files)
-        data (merge (pagination-urls #(str "/articles/page/" %) page)
-                    {:body (string/join (map article-partial (:items page)))}
-                    (sidebar-data files))]
-    {:body (list-template data)}))
+(defn list-articles-page [{db :db} page-num]
+  (println "list all" page-num)
+  (let [page (article-page db page-num)]
+    {:data (merge page
+                  (pagination-urls #(str "/articles/page/" %) page))
+     :template :article-list}))
 
-(defn list-articles-month-page [month page session]
-  (println "list month" month page)
-  (let [files (article-files)
-        page (article-month-page-data month page files)
-        data (merge (pagination-urls #(str "/articles/month/" month "/page/" %) page)
-                    {:body (string/join (map article-partial (:items page)))}
-                    (sidebar-data files))]
-    {:body (list-template data)}))
+(defn list-articles-month-page [{db :db} month page-num]
+  (println "list month" month page-num)
+  (let [page (article-month-page db month page-num)]
+    {:data (merge page
+                  (pagination-urls #(str "/articles/month/" month "/page/" %) page))
+     :template :article-list}))
 
-(defn show-article [code session]
+; TODO move code->filename to the db
+(defn show-article [{db :db} code]
   (println "show" code)
-  (let [files (article-files)
-        data (merge (sidebar-data files)
-                    {:body (article-partial (article-data (code->filename code)))})]
-    {:body (list-template data)}))
+  {:data (article db (code->filename code))
+   :template :article-list})
 
 
 ; routes
 
 (defroutes content-routes
+  ; all articles
   (GET "/"
-       {session :session :as req}
-    (authenticated req
-      (list-articles-page 0 session)))
+       {component :component}
+    (list-articles-page component 0))
   (GET "/articles"
-       {session :session :as req}
-    (authenticated req
-      (list-articles-page 0 session)))
+       {component :component}
+    (list-articles-page component 0))
   (GET "/articles/page/:page"
-       {{page :page} :params session :session :as req}
-    (authenticated req
-      (list-articles-page (Integer/parseInt page) session)))
+       {{page :page} :params component :component}
+    (list-articles-page component (Integer/parseInt page)))
+
+  ; articles of a month
   (GET "/articles/month/:month"
-       {{month :month} :params session :session :as req}
-    (authenticated req
-      (list-articles-month-page month 0 session)))
+       {{month :month} :params component :component}
+    (list-articles-month-page component month 0))
   (GET "/articles/month/:month/page/:page"
-       {{month :month page :page} :params session :session :as req}
-    (authenticated req
-      (list-articles-month-page month (Integer/parseInt page) session)))
+       {{month :month page :page} :params component :component}
+    (list-articles-month-page component month (Integer/parseInt page)))
+
+  ; single article
   (GET "/articles/:code"
-       {{code :code} :params session :session :as req}
-    (authenticated req
-      (show-article code session))))
+       {{code :code} :params component :component}
+    (show-article component code)))
+
+
+; component
+
+(defrecord ArticleHandler [db next]
+  component/Lifecycle
+    (start [this]
+      (println "start")
+      this)
+    (stop [this]
+      (println "stop")
+      this)
+  Handler
+    (handle [this req]
+      (println "article-handler" req)
+      (let [extended-req (assoc req :component this)
+            resp (content-routes extended-req)
+            next-req (update-in req [:resp] merge resp)]
+        (handle next next-req))))
+
+(defn new-article-handler []
+  (map->ArticleHandler {}))
+
