@@ -34,4 +34,4 @@
 (defn -main []
   (component/start system))
 
-(-main)
+;(-main)

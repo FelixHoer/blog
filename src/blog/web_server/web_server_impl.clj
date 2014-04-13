@@ -6,7 +6,6 @@
 
 (defn wrap-handler [handler]
   (fn [req]
-    (println "handler" req)
     (let [extended-req (assoc req :resp {:data nil :template nil})
           extended-resp (handle handler extended-req)]
       (:resp extended-resp))))
@@ -17,7 +16,6 @@
       (params/wrap-params)))
 
 (defn start-impl [this]
-  (println "start WebServer")
   (if (:jetty this)
     this
     (let [handler (make-handler (:next this))
@@ -26,5 +24,4 @@
       (assoc this :jetty server))))
 
 (defn stop-impl [this]
-  (println "stop WebServer")
   this)

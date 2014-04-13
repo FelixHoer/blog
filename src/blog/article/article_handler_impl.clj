@@ -9,14 +9,12 @@
 ; server endpoints
 
 (defn list-articles-page [{db :db} page-num]
-  (println "list all" page-num)
   (let [page (article-page db page-num)]
     {:data (merge page
                   (pagination-urls #(str "/articles/page/" %) page))
      :template :article-list}))
 
 (defn list-articles-month-page [{db :db} month page-num]
-  (println "list month" month page-num)
   (let [page (article-month-page db month page-num)]
     {:data (merge page
                   (pagination-urls #(str "/articles/month/" month "/page/" %) page))
@@ -24,7 +22,6 @@
 
 ; TODO move code->filename to the db
 (defn show-article [{db :db} code]
-  (println "show" code)
   {:data (article db (code->filename code))
    :template :article-list})
 
@@ -60,15 +57,12 @@
 ; component
 
 (defn start-impl [this]
-  (println "start")
   this)
 
 (defn stop-impl [this]
-  (println "stop")
   this)
 
 (defn handle-impl [this req]
-  (println "article-handler" req)
   (let [extended-req (assoc req :component this)
         resp (content-routes extended-req)
         next (:next  this)

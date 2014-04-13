@@ -13,7 +13,6 @@
   (route/not-found "Page not found"))
 
 (defn handle-impl [this {resp :resp :as req}]
-  (println "themer" req)
   (cond
     (:template resp)
       (let [{template-key :template data :data} resp]

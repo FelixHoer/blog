@@ -4,4 +4,4 @@
 
 (defrecord ThemeHandler []
   Handler
-   (handle [this req] ((var handle-impl) this req)))
+    (handle [this req] ((var handle-impl) this req)))

@@ -40,7 +40,6 @@
     (process-login req))
   (route/resources "/" {:root STATIC_RESOURCE_PATH})
   (ANY "*" {:as req}
-    (println "enforce")
     (enforce-auth req)))
 
 
@@ -53,7 +52,6 @@
   this)
 
 (defn handle-impl [this {session :session :as req}]
-  (println "logged in? " (is-logged-in? session))
   (if (is-logged-in? session)
     (handle (:next this) req)
     (let [extended-req (assoc req :component this)
