@@ -22,7 +22,7 @@
 
 (def smiley-plugin (map->SmileyPlugin {}))
 
-(def GOOGLE_MAP_APP_KEY "APP-KEY")
+(def GOOGLE_MAP_APP_KEY "APP_KEY")
 (def google-map-plugin (map->GoogleMapPlugin {:app-key GOOGLE_MAP_APP_KEY}))
 
 (def markdown-plugin (map->MarkdownPlugin {}))

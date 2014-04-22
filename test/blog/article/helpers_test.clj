@@ -1,28 +1,16 @@
-(ns blog.content.helpers-test
+(ns blog.article.helpers-test
   (:require [clojure.test :refer :all]
-            [blog.content.helpers :refer :all]))
+            [blog.article.helpers :refer :all]))
 
 (deftest helpers
   (testing "month-name"
     (is (= (month-name "02")
            "February")))
-  (testing "code->filename"
-    (is (= (code->filename "some-article")
-           "some-article.md")))
-  (testing "filename->code"
-    (is (= (filename->code "some-article.md")
-           "some-article")))
   (testing "parse-article-code"
     (is (let [res (parse-article-code "2014-02")]
            (and (= (:month-name res) "February")
                 (= (:year res) "2014"))))
     (is (= (parse-article-code "2014-04-02-first-post")
-           {:code "2014-04-02-first-post",
-            :title "First Post",
-            :month-name "April",
-            :day "02", :month "04", :year "2014"})))
-  (testing "parse-article-filename"
-    (is (= (parse-article-filename "2014-04-02-first-post.md")
            {:code "2014-04-02-first-post",
             :title "First Post",
             :month-name "April",

@@ -1,6 +1,6 @@
-(ns blog.auth.core-test
+(ns blog.auth.auth-handler-impl-test
   (:require [clojure.test :refer :all]
-            [blog.auth.core :refer :all]))
+            [blog.auth.auth-handler-impl :refer :all]))
 
 (deftest auth-helpers
   (testing "local-redirect"
