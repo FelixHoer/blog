@@ -26,7 +26,5 @@
 
 (defn process-impl [{app-key :app-key} content]
   (string/replace content
-                  #"\!\[(.*)\]\(map:(.+)\)"
+                  #"\!\[([^\)]*)\]\(map:([^\)]+)\)"
                   (fn [[_ title data]] (map-iframe app-key title data))))
-
-;(process-impl {:app-key "123"} "![my map](map:Klagenfurt+Austria|Graz+Austria|Wien+Austria)")
