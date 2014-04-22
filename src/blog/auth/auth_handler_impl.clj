@@ -27,7 +27,7 @@
   (let [resp (local-redirect req "/")]
     (assoc-in resp [:session :logged-in] true)))
 
-(defn enforce-auth [{session :session :as req}]
+(defn enforce-auth [req]
   (local-redirect req "/login"))
 
 
