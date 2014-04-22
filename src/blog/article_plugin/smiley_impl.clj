@@ -6,7 +6,7 @@
               [#">:\)|:devil:"        "face-devilish.png"]
               [#"B-?\)|:glasses:"     "face-glasses.png"]
               [#":-?D|:grin:"         "face-grin.png"]
-              [#":-?\*|:kiss:"         "face-kiss.png"]
+              [#":-?\*|:kiss:"        "face-kiss.png"]
               [#":-?(\|\/):plain:"    "face-plain.png"]
               [#":-?\(|:sad:"         "face-sad.png"]
               [#":-?\)|:smile:"       "face-smile.png"]
