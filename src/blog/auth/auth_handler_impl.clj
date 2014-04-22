@@ -1,7 +1,6 @@
 (ns blog.auth.auth-handler-impl
   (:use compojure.core
-        blog.handler
-        blog.constants)
+        blog.handler)
   (:require [ring.util.response :as ring-response]
             [compojure.route :as route]))
 
@@ -33,29 +32,29 @@
 
 ; routes
 
-(defroutes auth-routes
-  (GET "/login" {:as req}
-    (login req))
-  (POST "/login" {:as req}
-    (process-login req))
-  (route/resources "/" {:root STATIC_RESOURCE_PATH})
-  (ANY "*" {:as req}
-    (enforce-auth req)))
+(defn setup-auth-routes [static-resource-path]
+  (routes
+    (GET "/login" {:as req}
+      (login req))
+    (POST "/login" {:as req}
+      (process-login req))
+    (route/resources "/" {:root static-resource-path})
+    (ANY "*" {:as req}
+      (enforce-auth req))))
 
 
 ; component
 
-(defn start-impl [this]
-  this)
+(defn start-impl [{static-resource-path :static-resource-path :as this}]
+  (assoc this :auth-routes (setup-auth-routes static-resource-path)))
 
 (defn stop-impl [this]
   this)
 
-(defn handle-impl [this {session :session :as req}]
+(defn handle-impl [{:keys [auth-routes next final] :as this} {session :session :as req}]
   (if (is-logged-in? session)
-    (handle (:next this) req)
+    (handle next req)
     (let [extended-req (assoc req :component this)
           resp (auth-routes extended-req)
-          next (:final this)
-          next-req (update-in req [:resp] merge resp)]
-      (handle next next-req))))
+          final-req (update-in req [:resp] merge resp)]
+      (handle final final-req))))

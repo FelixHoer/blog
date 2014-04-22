@@ -1,6 +1,5 @@
 (ns blog.core
-  (:use blog.constants
-        blog.auth.auth-handler
+  (:use blog.auth.auth-handler
         ;blog.auth.auth-file-datastore
         blog.article.article-handler
         blog.article.article-file-datastore
@@ -28,14 +27,39 @@
 (def markdown-plugin (map->MarkdownPlugin {}))
 
 
+; components
+
+(def STATIC_RESOURCE_PATH "static")
+
+(def web-server (map->WebServer {}))
+
+(def auth-handler (map->AuthHandler {:static-resource-path STATIC_RESOURCE_PATH}))
+
+(def ARTICLES_PATH "articles")
+(def ARTICLES_PER_PAGE 5)
+(def RECENT_ARTICLES 10)
+(def article-datastore (map->ArticleFileDatastore {:article-path ARTICLES_PATH
+                                                   :articles-per-page ARTICLES_PER_PAGE
+                                                   :recent-articles RECENT_ARTICLES}))
+
+(def article-handler (map->ArticleHandler {:plugins [:dropbox-plugin
+                                                     :smiley-plugin
+                                                     :google-map-plugin
+                                                     :markdown-plugin]}))
+
+(def TEMPLATES_RESOURCE_PATH "templates")
+(def theme-handler (map->ThemeHandler {:template-resource-path TEMPLATES_RESOURCE_PATH
+                                       :static-resource-path STATIC_RESOURCE_PATH}))
+
+
 ; system
 
 (def system
   (component/system-map
-   :web-server (component/using (map->WebServer {})
+   :web-server (component/using web-server
                                 {:next :auth-handler})
    ;:auth-datastore (map->AuthFileDatastore {})
-   :auth-handler (component/using (map->AuthHandler {})
+   :auth-handler (component/using auth-handler
                                   {;:db :auth-datastore
                                    :next :article-handler
                                    :final :theme-handler})
@@ -43,8 +67,8 @@
    :smiley-plugin smiley-plugin
    :google-map-plugin google-map-plugin
    :markdown-plugin markdown-plugin
-   :article-datastore (map->ArticleFileDatastore {})
-   :article-handler (component/using (map->ArticleHandler {:plugins [:dropbox-plugin :smiley-plugin :google-map-plugin :markdown-plugin]})
+   :article-datastore article-datastore
+   :article-handler (component/using article-handler
                                      {:db :article-datastore
                                       :markdown-plugin :markdown-plugin
                                       :dropbox-plugin :dropbox-plugin
@@ -56,7 +80,7 @@
    ;:comment-handler (component/using (map->CommentHandler {})
    ;                                  {:db :comment-datastore
    ;                                   :next :theme-handler})
-   :theme-handler (map->ThemeHandler {})))
+   :theme-handler theme-handler))
 
 
 ; main

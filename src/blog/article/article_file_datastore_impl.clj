@@ -1,5 +1,4 @@
 (ns blog.article.article-file-datastore-impl
-  (:use blog.constants)
   (:use blog.article.helpers)
   (:require [clojure.string :as string]
             [markdown.core :as markdown]))
@@ -31,17 +30,17 @@
 
 ; list of article names
 
-(defn article-files []
-  (let [root (clojure.java.io/file ARTICLES_PATH)
+(defn article-files [{article-path :article-path}]
+  (let [root (clojure.java.io/file article-path)
         files (filter #(.isFile %) (file-seq root))]
     (map #(.getName %) files)))
 
 
 ; content of an article
 
-(defn article-data [name]
+(defn article-data [{article-path :article-path} name]
   (let [safe-name (string/join (remove #(= \/ %) name))
-        path (str ARTICLES_PATH "/" safe-name)
+        path (str article-path "/" safe-name)
         file-content (slurp path)]
     (merge (parse-article-filename name)
            {:body file-content})))
@@ -49,45 +48,47 @@
 
 ; paginated main list
 
-(defn article-page-data [page-num article-files]
+(defn article-page-data [db page-num article-files]
   (let [sorted-files (reverse (sort article-files))
-        data (paginate page-num ARTICLES_PER_PAGE sorted-files)]
-    (update-in data [:items] #(map article-data %))))
+        data (paginate page-num (:articles-per-page db) sorted-files)]
+    (update-in data [:items]
+               (fn [item] (map #(article-data db %) item)))))
 
-(defn article-month-page-data [month page-num article-files]
+(defn article-month-page-data [db month page-num article-files]
   (let [month-files (get (group-by-month article-files) month)]
-    (article-page-data page-num month-files)))
+    (article-page-data db page-num month-files)))
 
 
 ; sidebar
 
-(defn sidebar-recent-article-data [article-files]
+(defn sidebar-recent-article-data [{recent-articles :recent-articles} article-files]
   (let [sorted-files (reverse (sort article-files))
-        recent-files (take RECENT_ARTICLES sorted-files)]
+        recent-files (take recent-articles sorted-files)]
     (map parse-article-filename recent-files)))
 
-(defn sidebar-archive-data [article-files]
+(defn sidebar-archive-data [db article-files]
   (let [months (keys (group-by-month article-files))
         sorted-months (reverse (sort months))]
     (map parse-article-code sorted-months)))
 
-(defn sidebar-data [article-files]
-  {:recent-articles (sidebar-recent-article-data article-files)
-   :archive-months (sidebar-archive-data article-files)})
+(defn sidebar-data [db article-files]
+  {:recent-articles (sidebar-recent-article-data db article-files)
+   :archive-months (sidebar-archive-data db article-files)})
 
 
 ; component
 
 (defn article-impl [this code]
-  (merge {:items [(article-data (code->filename code))]}
-         (sidebar-data (article-files))))
+  (let [files (article-files this)]
+    (merge {:items [(article-data this (code->filename code))]}
+           (sidebar-data this files))))
 
 (defn article-page-impl [this page-num]
-  (let [files (article-files)]
-    (merge (article-page-data page-num files)
-           (sidebar-data files))))
+  (let [files (article-files this)]
+    (merge (article-page-data this page-num files)
+           (sidebar-data this files))))
 
 (defn article-month-page-impl [this month page-num]
-  (let [files (article-files)]
-    (merge (article-month-page-data month page-num files)
-           (sidebar-data files))))
+  (let [files (article-files this)]
+    (merge (article-month-page-data this month page-num files)
+           (sidebar-data this files))))
