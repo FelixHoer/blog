@@ -5,5 +5,5 @@
 
 (defn process-impl [this content]
   (string/replace content
-                  #"\!\[(.*)\]\(db:(.+)\)"
+                  #"\!\[([^\)]*)\]\(db:([^\)]+)\)"
                   (str "![$1](" (dropbox-url this) "$2)")))
