@@ -1,6 +1,6 @@
 (ns blog.core
   (:use blog.auth.auth-handler
-        ;blog.auth.auth-file-datastore
+        blog.auth.auth-file-datastore
         blog.article.article-handler
         blog.article.article-file-datastore
         ;blog.comment.comment-handler
@@ -33,6 +33,13 @@
 
 (def web-server (map->WebServer {}))
 
+(def TEMPLATES_RESOURCE_PATH "templates")
+(def theme-handler (map->ThemeHandler {:template-resource-path TEMPLATES_RESOURCE_PATH
+                                       :static-resource-path STATIC_RESOURCE_PATH}))
+
+(def AUTH_FILE_PATH "users.edn")
+(def auth-datastore (map->AuthFileDatastore {:path AUTH_FILE_PATH}))
+
 (def auth-handler (map->AuthHandler {:static-resource-path STATIC_RESOURCE_PATH}))
 
 (def ARTICLES_PATH "articles")
@@ -47,10 +54,6 @@
                                                      :google-map-plugin
                                                      :markdown-plugin]}))
 
-(def TEMPLATES_RESOURCE_PATH "templates")
-(def theme-handler (map->ThemeHandler {:template-resource-path TEMPLATES_RESOURCE_PATH
-                                       :static-resource-path STATIC_RESOURCE_PATH}))
-
 
 ; system
 
@@ -62,9 +65,9 @@
    :theme-handler (component/using theme-handler
                                    {:next :auth-handler})
 
-   ;:auth-datastore (map->AuthFileDatastore {})
+   :auth-datastore auth-datastore
    :auth-handler (component/using auth-handler
-                                  {;:db :auth-datastore
+                                  {:db :auth-datastore
                                    :next :article-handler})
 
    :dropbox-plugin dropbox-plugin
