@@ -51,10 +51,13 @@
 (defn stop-impl [this]
   this)
 
-(defn handle-impl [{:keys [auth-routes next final] :as this} {session :session :as req}]
-  (if (is-logged-in? session)
-    (handle next req)
+(defn handle-impl [{:keys [auth-routes next] :as this}
+                   {session :session :as req}]
+  (if-not (is-logged-in? session)
     (let [extended-req (assoc req :component this)
           resp (auth-routes extended-req)
           final-req (update-in req [:resp] merge resp)]
-      (handle final final-req))))
+      final-req)
+    (if next
+      (handle next req)
+      req)))

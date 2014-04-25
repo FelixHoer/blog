@@ -57,12 +57,16 @@
 (def system
   (component/system-map
    :web-server (component/using web-server
-                                {:next :auth-handler})
+                                {:next :theme-handler})
+
+   :theme-handler (component/using theme-handler
+                                   {:next :auth-handler})
+
    ;:auth-datastore (map->AuthFileDatastore {})
    :auth-handler (component/using auth-handler
                                   {;:db :auth-datastore
-                                   :next :article-handler
-                                   :final :theme-handler})
+                                   :next :article-handler})
+
    :dropbox-plugin dropbox-plugin
    :smiley-plugin smiley-plugin
    :google-map-plugin google-map-plugin
@@ -75,12 +79,13 @@
                                       :smiley-plugin :smiley-plugin
                                       :google-map-plugin :google-map-plugin
                                       ;:next :comment-handler
-                                      :next :theme-handler})
+                                      })
+
    ;:comment-datastore (map->CommentSQLDatastore {})
    ;:comment-handler (component/using (map->CommentHandler {})
    ;                                  {:db :comment-datastore
    ;                                   :next :theme-handler})
-   :theme-handler theme-handler))
+   ))
 
 
 ; main

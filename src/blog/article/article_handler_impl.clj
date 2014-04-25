@@ -79,9 +79,10 @@
 (defn stop-impl [this]
   this)
 
-(defn handle-impl [this req]
+(defn handle-impl [{next :next :as this} req]
   (let [extended-req (assoc req :component this)
         resp (content-routes extended-req)
-        next (:next  this)
         next-req (update-in req [:resp] merge resp)]
-    (handle next next-req)))
+    (if next
+      (handle next next-req)
+      next-req)))

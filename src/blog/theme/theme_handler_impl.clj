@@ -1,10 +1,12 @@
 (ns blog.theme.theme-handler-impl
   (:use [blog.theme.template :only [templates]]
-        [compojure.core :only [routes]])
+        [compojure.core :only [routes]]
+        blog.handler)
   (:require [compojure.route :as route]))
 
-(def TEMPLATES {:article-list ["layout" "list"]
-                :login        ["layout" "login"]})
+(def TEMPLATES {:error        ["layout" "error"]
+                :login        ["layout" "login"]
+                :article-list ["layout" "list"]})
 
 (defn setup-templates [template-resource-path]
   (into {}
@@ -24,14 +26,17 @@
 (defn stop-impl [this]
   this)
 
-(defn handle-impl [{templates :templates static-routes :static-routes}
-                   {resp :resp :as req}]
-  (cond
-    (:template resp)
-      (let [{template-key :template data :data} resp
-            templ (template-key templates)]
-        {:resp {:body (templ data)}})
-    (:body resp)
-      {:resp resp}
-    :else
-      {:resp (static-routes req)}))
+(defn handle-impl [{:keys [templates static-routes next]} req]
+  (try
+    (let [{resp :resp} (handle next req)]
+      (cond
+        (:template resp)
+          (let [{template-key :template data :data} resp
+                template (template-key templates)]
+            {:resp {:body (template data)}})
+        (:body resp)
+          {:resp resp}
+        :else
+          {:resp (static-routes req)}))
+    (catch Exception e
+      {:resp {:body ((:error templates) {})}})))
