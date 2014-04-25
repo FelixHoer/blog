@@ -39,4 +39,5 @@
         :else
           {:resp (static-routes req)}))
     (catch Exception e
+      (.printStackTrace e)
       {:resp {:body ((:error templates) {})}})))
