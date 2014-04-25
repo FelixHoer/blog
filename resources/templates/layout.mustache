@@ -29,6 +29,24 @@
 
     <div class="container">
 
+      {{#error}}
+      <div class="alert alert-danger">
+        {{error}}
+      </div>
+      {{/error}}
+
+      {{#warning}}
+      <div class="alert alert-warning">
+        {{warning}}
+      </div>
+      {{/warning}}
+
+      {{#info}}
+      <div class="alert alert-info">
+        {{info}}
+      </div>
+      {{/info}}
+
       {{{body}}}
 
     </div><!-- /.container -->

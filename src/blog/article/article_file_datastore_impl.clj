@@ -79,8 +79,12 @@
 ; component
 
 (defn article-impl [this code]
-  (let [files (article-files this)]
-    (merge {:items [(article-data this (code->filename code))]}
+  (let [files (article-files this)
+        articles (try
+                   [(article-data this (code->filename code))]
+                   (catch Exception e
+                     []))]
+    (merge {:items articles}
            (sidebar-data this files))))
 
 (defn article-page-impl [this page-num]
