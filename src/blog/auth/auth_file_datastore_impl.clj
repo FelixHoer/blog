@@ -4,15 +4,12 @@
 
 
 (defn check-credentials [coll user pwd]
-  (let [key (get coll user)]
-    (password/check pwd key)))
+  (if-let [key (get coll user)]
+    (password/check pwd key)
+    false))
 
 (defn add-credentials [coll user pwd]
   (assoc coll user (password/encrypt pwd)))
-
-(def data (-> {}
-              (add-credentials "user" "foobar")
-              (add-credentials "user2" "foobar2")))
 
 (defn write-auth-file [coll path]
   (spit path (prn-str coll)))

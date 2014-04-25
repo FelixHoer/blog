@@ -1,6 +1,7 @@
 (ns blog.auth.auth-handler-impl
   (:use compojure.core
-        blog.handler)
+        blog.handler
+        blog.auth.auth-datastore)
   (:require [ring.util.response :as ring-response]
             [compojure.route :as route]))
 
@@ -21,10 +22,15 @@
 (defn login [req]
   {:template :login})
 
-(defn process-login [{session :session params :params :as req}]
-  ; TODO check the received credentials
-  (let [resp (local-redirect req "/")]
-    (assoc-in resp [:session :logged-in] true)))
+(defn process-login [{:keys [session params component] :as req}]
+  (let [username (get params "username")
+        password (get params "password")]
+    (if (authenticate (:db component) username password)
+      (let [resp (local-redirect req "/")]
+        (update-in resp [:session] merge {:logged-in true
+                                          :username username}))
+      {:template :login
+       :data {:warning "Username and/or Password was incorrect!"}})))
 
 (defn enforce-auth [req]
   (local-redirect req "/login"))
