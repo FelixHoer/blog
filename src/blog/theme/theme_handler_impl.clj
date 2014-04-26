@@ -6,7 +6,8 @@
 
 (def TEMPLATES {:error        ["layout" "error"]
                 :login        ["layout" "login"]
-                :article-list ["layout" "list"]})
+                :article-list ["layout" "blog_layout" "article_list"]
+                :article      ["layout" "blog_layout" "article"]})
 
 (defn setup-templates [template-resource-path]
   (into {}

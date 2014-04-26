@@ -40,7 +40,7 @@
 (defn show-article [{db :db :as component} code]
   (let [page (article db code)]
     {:data (apply-plugins-page component page)
-     :template :article-list}))
+     :template :article}))
 
 
 ; routes

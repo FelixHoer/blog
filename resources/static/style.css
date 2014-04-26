@@ -51,7 +51,6 @@ h6, .h6 {
 @media (min-width: 768px) {
   .blog-main .blog-post .date {
     text-align: right;
-    font-weight: bold;
     color: #aaa;
     line-height: 1.5;
   }
@@ -59,6 +58,29 @@ h6, .h6 {
 
 .blog-main .blog-post p {
   text-align: justify;
+}
+
+.blog-main .comments {
+  margin-top: 40px;
+}
+
+.blog-main .comments form {
+  text-align: right;
+}
+
+.blog-main .comments li {
+  list-style: none;
+  line-height: 1.1;
+  font-size: 90%;
+  margin-bottom: 15px;
+}
+
+.blog-main .comments .comment-name {
+  font-weight: bold;
+  margin-right: 10px;
+}
+.blog-main .comments .comment-time {
+  color: #aaa;
 }
 
 .blog-sidebar {
