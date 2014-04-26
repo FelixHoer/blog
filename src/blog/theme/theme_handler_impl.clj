@@ -33,8 +33,9 @@
       (cond
         (:template resp)
           (let [{template-key :template data :data} resp
-                template (template-key templates)]
-            {:resp {:body (template data)}})
+                template (template-key templates)
+                extended-data (assoc data :session (:session req))]
+            {:resp {:body (template extended-data)}})
         (:body resp)
           {:resp resp}
         :else

@@ -13,7 +13,12 @@
       <form class="form-horizontal panel-heading" method="post" action="/comment">
         <div class="form-group">
           <div class="col-sm-8">
+            {{#session.username}}
+            <input type="text" class="form-control" name="comment-name" placeholder="Name" value="{{session.username}}" disabled>
+            {{/session.username}}
+            {{^session.username}}
             <input type="text" class="form-control" name="comment-name" placeholder="Name">
+            {{/session.username}}
           </div>
           <div class="col-sm-4">
             <button type="submit" class="btn btn-default">Comment!</button>

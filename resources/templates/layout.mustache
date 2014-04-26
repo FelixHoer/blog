@@ -24,6 +24,11 @@
       <div class="container">
         <a class="navbar-brand" href="/">Title</a>
         <p class="navbar-text">Subtitle</p>
+        {{#session.username}}
+        <p class="navbar-text navbar-right">
+          Logged in as {{session.username}}
+        </p>
+        {{/session.username}}
       </div>
     </nav>
 
