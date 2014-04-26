@@ -4,7 +4,7 @@
         blog.article.article-handler
         blog.article.article-file-datastore
         blog.comment.comment-handler
-        ;blog.comment.comment-sql-datastore
+        blog.comment.comment-sql-datastore
         blog.theme.theme-handler
         blog.web-server.web-server
         blog.article-plugin.dropbox
@@ -54,6 +54,8 @@
                                                      :google-map-plugin
                                                      :markdown-plugin]}))
 
+(def comment-datastore (map->CommentSQLDatastore {}))
+
 (def comment-handler (map->CommentHandler {}))
 
 
@@ -85,10 +87,9 @@
                                       :google-map-plugin :google-map-plugin
                                       :next :comment-handler})
 
-   ;:comment-datastore (map->CommentSQLDatastore {})
+   :comment-datastore comment-datastore
    :comment-handler (component/using comment-handler
-                                     {;:db :comment-datastore
-                                      })))
+                                     {:db :comment-datastore})))
 
 
 ; main
