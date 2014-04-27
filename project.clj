@@ -10,6 +10,8 @@
                  [compojure "1.1.6"]
                  [de.ubercode.clostache/clostache "1.3.1"]
                  [markdown-clj "0.9.41"]
-                 [crypto-password "0.1.3"]]
+                 [crypto-password "0.1.3"]
+                 [org.clojure/java.jdbc "0.3.3"]
+                 [org.hsqldb/hsqldb "2.3.2"]]
   :main blog.core
   :uberjar-name "blog-standalone.jar")

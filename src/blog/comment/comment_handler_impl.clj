@@ -13,6 +13,7 @@
 
 (def validate-tests [
   [#(-> % :name string/trim empty?) "Name is empty."]
+  [#(-> % :name count (> 255))      "Name is too long."]
   [#(-> % :text string/trim empty?) "Text is empty."]])
 
 (defn validate-errors [comment]

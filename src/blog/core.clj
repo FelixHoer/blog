@@ -11,7 +11,8 @@
         blog.article-plugin.smiley
         blog.article-plugin.google-map
         blog.article-plugin.markdown)
-  (:require [com.stuartsierra.component :as component]))
+  (:require [com.stuartsierra.component :as component]
+            [clojure.string :as string]))
 
 
 ; plugins
@@ -54,7 +55,13 @@
                                                      :google-map-plugin
                                                      :markdown-plugin]}))
 
-(def comment-datastore (map->CommentSQLDatastore {}))
+(def DB_SPEC {:subprotocol "hsqldb"
+              :subname (string/join ";" ["file:/tmp/test-db/blogdb"
+                                         "shutdown=true"
+                                         "sql.syntax_pgs=true"])
+              :user "SA"
+              :password ""})
+(def comment-datastore (map->CommentSQLDatastore {:db DB_SPEC}))
 
 (def comment-handler (map->CommentHandler {}))
 

@@ -77,10 +77,12 @@ h6, .h6 {
 
 .blog-main .comments .comment-name {
   font-weight: bold;
-  margin-right: 10px;
 }
 .blog-main .comments .comment-time {
   color: #aaa;
+}
+.blog-main .comments .comment-time:before {
+  content: " on ";
 }
 
 .blog-sidebar {
