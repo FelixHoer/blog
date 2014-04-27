@@ -28,13 +28,17 @@
       (session/wrap-session)
       (params/wrap-params)))
 
-(defn start-impl [this]
-  (if (:jetty this)
+(defn start-impl [{old-server :server next :next port :port :as this}]
+  (if old-server
     this
-    (let [handler (make-handler (:next this))
-          port (if (:port this) (:port this) 8080)
-          server (jetty/run-jetty handler {:port  port :join? false})]
-      (assoc this :jetty server))))
+    (let [handler (make-handler next)
+          server (jetty/run-jetty handler {:port (or port 8080)
+                                           :join? false})]
+      (assoc this :server server))))
 
-(defn stop-impl [this]
-  this)
+(defn stop-impl [{server :server :as this}]
+  (if server
+    (do
+      (.stop server)
+      (assoc this :server nil))
+    this))

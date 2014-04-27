@@ -97,4 +97,10 @@
 (defn -main []
   (component/start system))
 
-;(-main)
+(defn restart []
+  (alter-var-root #'system component/stop)
+  (alter-var-root #'system component/start))
+
+;(alter-var-root #'system component/start)
+;(alter-var-root #'system component/stop)
+;(restart)
