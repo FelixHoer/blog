@@ -32,7 +32,7 @@
   (let [pages (partition-all items-per-page coll)
         page-items (nth pages page-num nil)
         has-next (not (nil? (nth pages (inc page-num) nil)))
-        has-previous (> page-num 0)]
+        has-previous (pos? page-num)]
     (merge {:current-page page-num
             :items page-items}
            (if has-previous {:previous-page (dec page-num)})

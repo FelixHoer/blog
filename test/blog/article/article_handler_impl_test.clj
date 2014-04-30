@@ -89,4 +89,4 @@
            {:data {:items '({:body "abc123"}),
                    :recent-articles "recent-articles",
                    :archive-months "archive-months"},
-            :template :article-list}))))
+            :template :article}))))
