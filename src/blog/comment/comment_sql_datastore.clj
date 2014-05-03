@@ -3,7 +3,7 @@
         [blog.comment.comment-sql-datastore-impl
          :only [save-comment-impl read-comments-impl read-comment-counts-impl]]))
 
-(defrecord CommentSQLDatastore []
+(defrecord CommentSQLDatastore [db]
   CommentDatastore
     (save-comment [this comment article-code]
       ((var save-comment-impl) this comment article-code))
