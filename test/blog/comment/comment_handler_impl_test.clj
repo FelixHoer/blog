@@ -54,6 +54,7 @@
               :server-port "8080"}
              {:status 302,
               :headers {"Location" "http://localhost:8080/articles/the-article"},
+              :data {:flash {:warning "Could not save comment, because: Name is blank."}},
               :body ""}
 
              "the-article"

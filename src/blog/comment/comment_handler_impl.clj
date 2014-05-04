@@ -2,8 +2,11 @@
   (:use compojure.core
         blog.handler)
   (:require [blog.auth.auth-handler-impl :as helper]
-            [blog.comment.comment-datastore :as cdb]))
+            [blog.comment.comment-datastore :as cdb]
+            [clojure.string :as string]))
 
+
+(def SAVE_ERROR_MSG "Could not save comment, because: ")
 
 ; helpers
 
@@ -27,12 +30,10 @@
                                    :text (comment-text req)})
         errors (cdb/save-comment db comment article-code)]
     (if errors
-      (do
-        ; add error messages beyond redirect
-        (println "validation errors" errors)
-        (helper/local-redirect req (str "/articles/" article-code)))
-      (do
-        (helper/local-redirect req (str "/articles/" article-code "#comments"))))))
+      (deep-merge (helper/local-redirect req (str "/articles/" article-code))
+                  {:data {:flash {:warning (str SAVE_ERROR_MSG
+                                                (string/join " " errors))}}})
+      (helper/local-redirect req (str "/articles/" article-code "#comments")))))
 
 (defn extend-with-comment-counts [{db :db} {{items :items} :data :as resp}]
   (let [article-codes (map :code items)
