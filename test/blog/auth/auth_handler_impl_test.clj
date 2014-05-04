@@ -66,6 +66,7 @@
             :headers {"Location" "http://localhost/"},
             :session {:logged-in true
                       :username "username"}
+            :data {:flash {:info "You logged in successfully!"}}
             :body ""}))
     (is (= (process-login {:server-name "localhost"
                            :component {:db auth-db}
@@ -73,4 +74,4 @@
                            :params {"username" "username"
                                     "password" "wrong password"}})
            {:template :login,
-            :data {:warning "Username and/or Password was incorrect!"}}))))
+            :data {:flash {:warning "Username and/or Password was incorrect!"}}}))))

@@ -34,23 +34,23 @@
 
     <div class="container">
 
-      {{#error}}
+      {{#flash.error}}
       <div class="alert alert-danger">
-        {{error}}
+        {{flash.error}}
       </div>
-      {{/error}}
+      {{/flash.error}}
 
-      {{#warning}}
+      {{#flash.warning}}
       <div class="alert alert-warning">
-        {{warning}}
+        {{flash.warning}}
       </div>
-      {{/warning}}
+      {{/flash.warning}}
 
-      {{#info}}
+      {{#flash.info}}
       <div class="alert alert-info">
-        {{info}}
+        {{flash.info}}
       </div>
-      {{/info}}
+      {{/flash.info}}
 
       {{{body}}}
 

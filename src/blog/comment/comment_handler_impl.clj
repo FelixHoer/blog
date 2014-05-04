@@ -73,7 +73,7 @@
 (defn handle-impl [{next :next :as this} req]
   (let [extended-req (assoc req :component this)
         resp (comment-routes extended-req)
-        next-req (update-in req [:resp] merge resp)]
+        next-req (update-in req [:resp] deep-merge resp)]
     (if next
       (handle next next-req)
       next-req)))

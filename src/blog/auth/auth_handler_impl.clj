@@ -5,6 +5,11 @@
   (:require [ring.util.response :as ring-response]
             [compojure.route :as route]))
 
+; constants
+
+(def LOGIN_SUCCESS_MSG "You logged in successfully!")
+(def LOGIN_FAIL_MSG "Username and/or Password was incorrect!")
+
 
 ; helpers
 
@@ -22,15 +27,17 @@
 (defn login [req]
   {:template :login})
 
-(defn process-login [{:keys [session params component] :as req}]
+(defn process-login [{:keys [session params component resp] :as req}]
   (let [username (get params "username")
         password (get params "password")]
     (if (authenticate (:db component) username password)
-      (let [resp (local-redirect req "/")]
-        (update-in resp [:session] merge {:logged-in true
-                                          :username username}))
+      (deep-merge (local-redirect req "/")
+                  {:session {:logged-in true
+                             :username username}
+                   :data {:flash {:info LOGIN_SUCCESS_MSG}}})
+
       {:template :login
-       :data {:warning "Username and/or Password was incorrect!"}})))
+       :data {:flash {:warning LOGIN_FAIL_MSG}}})))
 
 (defn enforce-auth [req]
   (local-redirect req "/login"))
@@ -62,7 +69,7 @@
   (if-not (is-logged-in? session)
     (let [extended-req (assoc req :component this)
           resp (auth-routes extended-req)
-          final-req (update-in req [:resp] merge resp)]
+          final-req (update-in req [:resp] deep-merge resp)]
       final-req)
     (if next
       (handle next req)

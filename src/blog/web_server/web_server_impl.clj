@@ -2,7 +2,11 @@
   (:use blog.handler)
   (:require [ring.middleware.session :as session]
             [ring.middleware.params :as params]
+            [ring.middleware.flash :as flash]
             [ring.adapter.jetty :as jetty]))
+
+
+; content-type and charset middleware
 
 (defn has-no-extension [{uri :uri}]
   (empty? (re-find #"\.[A-Za-z0-9]+$" uri)))
@@ -16,15 +20,57 @@
         (assoc-in resp [:headers "Content-Type"] "text/html;charset=UTF-8")
         resp))))
 
-(defn wrap-handler [handler]
+
+; extended request middleware
+
+(defn wrap-extended-request [handler]
   (fn [req]
     (let [extended-req (assoc req :resp {:data nil :template nil})
-          extended-resp (handle handler extended-req)]
+          extended-resp (handler extended-req)]
       (:resp extended-resp))))
 
+
+; flash middleware
+
+(defn flash-request [{flash :flash :as req}]
+  (if flash
+    (assoc-in req [:resp :data :flash] flash)
+    req))
+
+(defn redirect? [{status :status}]
+  (and status
+       (<= 300 status 399)))
+
+(defn flash-response [{resp :resp :as req}]
+  (if (redirect? resp)
+    (if-let [flash (get-in resp [:data :flash])]
+      (assoc-in req [:resp :flash] flash)
+      req)
+    req))
+
+(defn wrap-flash [handler]
+  (fn [req]
+    (let [f-req (flash-request req)
+          h-req (handler f-req)]
+      (flash-response h-req))))
+
+
+; component middleware
+
+(defn wrap-handler-component [handler]
+  (fn [req]
+    (handle handler req)))
+
+
+; webserver definition
+
 (defn make-handler [handler]
-  (-> (wrap-handler handler)
+  (-> handler
+      (wrap-handler-component)
+      (wrap-flash)
+      (wrap-extended-request)
       (wrap-content-type)
+      (flash/wrap-flash)
       (session/wrap-session)
       (params/wrap-params)))
 
