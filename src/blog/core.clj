@@ -30,10 +30,9 @@
 
 ; components
 
-(def STATIC_RESOURCE_PATH "static")
-
 (def web-server (map->WebServer {}))
 
+(def STATIC_RESOURCE_PATH "static")
 (def TEMPLATES_RESOURCE_PATH "templates")
 (def theme-handler (map->ThemeHandler {:template-resource-path TEMPLATES_RESOURCE_PATH
                                        :static-resource-path STATIC_RESOURCE_PATH}))
@@ -41,7 +40,7 @@
 (def AUTH_FILE_PATH "users.edn")
 (def auth-datastore (map->AuthFileDatastore {:path AUTH_FILE_PATH}))
 
-(def auth-handler (map->AuthHandler {:static-resource-path STATIC_RESOURCE_PATH}))
+(def auth-handler (map->AuthHandler {}))
 
 (def ARTICLES_PATH "articles")
 (def ARTICLES_PER_PAGE 5)

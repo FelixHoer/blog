@@ -45,27 +45,25 @@
 
 ; routes
 
-(defn setup-auth-routes [static-resource-path]
+(def auth-routes
   (routes
     (GET "/login" {:as req}
       (login req))
     (POST "/login" {:as req}
       (process-login req))
-    (route/resources "/" {:root static-resource-path})
     (ANY "*" {:as req}
       (enforce-auth req))))
 
 
 ; component
 
-(defn start-impl [{static-resource-path :static-resource-path :as this}]
-  (assoc this :auth-routes (setup-auth-routes static-resource-path)))
+(defn start-impl [this]
+  this)
 
 (defn stop-impl [this]
   this)
 
-(defn handle-impl [{:keys [auth-routes next] :as this}
-                   {session :session :as req}]
+(defn handle-impl [{next :next :as this} {session :session :as req}]
   (if-not (is-logged-in? session)
     (let [extended-req (assoc req :component this)
           resp (auth-routes extended-req)
