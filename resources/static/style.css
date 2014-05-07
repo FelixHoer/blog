@@ -6,7 +6,6 @@ html {
 body {
   font-family: Georgia, "Times New Roman", Times, serif;
   color: #555;
-  padding: 80px 0;
   margin-bottom: 60px;
 }
 
@@ -22,13 +21,17 @@ h6, .h6 {
   color: #333;
 }
 
+.navbar {
+  margin-bottom: 50px;
+}
+
 .blog-main {
   font-size: 18px;
   line-height: 1.5;
 }
 
 .blog-main .blog-post {
-  margin-bottom: 60px;
+  margin-bottom: 30px;
 }
 
 .blog-main .blog-post img {
