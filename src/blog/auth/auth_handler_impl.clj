@@ -9,6 +9,7 @@
 
 (def LOGIN_SUCCESS_MSG "You logged in successfully!")
 (def LOGIN_FAIL_MSG "Username and/or Password was incorrect!")
+(def LOGOUT_SUCCESS_MSG "You logged out successfully!")
 
 
 ; helpers
@@ -39,6 +40,11 @@
       {:template :login
        :data {:flash {:warning LOGIN_FAIL_MSG}}})))
 
+(defn process-logout [req]
+  (deep-merge (local-redirect req "/")
+              {:session nil
+               :data {:flash {:info LOGOUT_SUCCESS_MSG}}}))
+
 (defn enforce-auth [req]
   (local-redirect req "/login"))
 
@@ -47,12 +53,12 @@
 
 (def auth-routes
   (routes
-    (GET "/login" {:as req}
+    (GET "/login" req
       (login req))
-    (POST "/login" {:as req}
+    (POST "/login" req
       (process-login req))
-    (ANY "*" {:as req}
-      (enforce-auth req))))
+    (GET "/logout" req
+      (process-logout req))))
 
 
 ; component
@@ -64,11 +70,11 @@
   this)
 
 (defn handle-impl [{next :next :as this} {session :session :as req}]
-  (if-not (is-logged-in? session)
-    (let [extended-req (assoc req :component this)
-          resp (auth-routes extended-req)
-          final-req (update-in req [:resp] deep-merge resp)]
-      final-req)
-    (if next
-      (handle next req)
-      req)))
+  (let [extended-req (assoc req :component this)]
+    (if-let [auth-resp (auth-routes extended-req)]
+      (update-in req [:resp] deep-merge auth-resp)
+      (if-not (is-logged-in? session)
+        (update-in req [:resp] deep-merge (enforce-auth extended-req))
+        (if next
+          (handle next req)
+          req)))))

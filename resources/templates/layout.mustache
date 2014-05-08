@@ -26,7 +26,8 @@
         <p class="navbar-text">Subtitle</p>
         {{#session.username}}
         <p class="navbar-text navbar-right">
-          Logged in as {{session.username}}
+          Logged in as {{session.username}}.
+          <a href="/logout">Log out.</a>
         </p>
         {{/session.username}}
       </div>
