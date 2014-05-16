@@ -10,7 +10,7 @@
   (testing "validation-errors"
     (are [c errs] (= (validation-errors c) errs)
 
-         nil             ["Name is blank."
+         nil            ["Name is blank."
                          "Text is blank."]
          {}             ["Name is blank."
                          "Text is blank."]
