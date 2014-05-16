@@ -1,8 +1,8 @@
-(ns blog.article-plugin.markdown-impl-test
-  (:use blog.article-plugin.plugin
-        blog.article-plugin.markdown)
+(ns blog.text-plugin.markdown-impl-test
+  (:use blog.text-plugin.plugin
+        blog.text-plugin.markdown)
   (:require [clojure.test :refer :all]
-            [blog.article-plugin.markdown-impl :refer :all]))
+            [blog.text-plugin.markdown-impl :refer :all]))
 
 (def markdown-plugin (map->MarkdownPlugin {}))
 

@@ -1,8 +1,8 @@
-(ns blog.article-plugin.dropbox-impl-test
-  (:use blog.article-plugin.plugin
-        blog.article-plugin.dropbox)
+(ns blog.text-plugin.dropbox-impl-test
+  (:use blog.text-plugin.plugin
+        blog.text-plugin.dropbox)
   (:require [clojure.test :refer :all]
-            [blog.article-plugin.dropbox-impl :refer :all]))
+            [blog.text-plugin.dropbox-impl :refer :all]))
 
 (def dropbox-plugin (map->DropboxPlugin {:user-id "<USER-ID>"}))
 

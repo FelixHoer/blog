@@ -1,8 +1,8 @@
-(ns blog.article-plugin.smiley-impl-test
-  (:use blog.article-plugin.plugin
-        blog.article-plugin.smiley)
+(ns blog.text-plugin.smiley-impl-test
+  (:use blog.text-plugin.plugin
+        blog.text-plugin.smiley)
   (:require [clojure.test :refer :all]
-            [blog.article-plugin.smiley-impl :refer :all]))
+            [blog.text-plugin.smiley-impl :refer :all]))
 
 (def smiley-plugin (map->SmileyPlugin {}))
 

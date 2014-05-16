@@ -1,8 +1,8 @@
-(ns blog.article-plugin.google-map-impl-test
-  (:use blog.article-plugin.plugin
-        blog.article-plugin.google-map)
+(ns blog.text-plugin.google-map-impl-test
+  (:use blog.text-plugin.plugin
+        blog.text-plugin.google-map)
   (:require [clojure.test :refer :all]
-            [blog.article-plugin.google-map-impl :refer :all]))
+            [blog.text-plugin.google-map-impl :refer :all]))
 
 (def google-plugin (map->GoogleMapPlugin {:app-key "123"}))
 

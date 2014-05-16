@@ -1,5 +1,5 @@
 (ns blog.article.article-handler-impl-test
-  (:use blog.article-plugin.plugin
+  (:use blog.text-plugin.plugin
         blog.article.article-datastore)
   (:require [clojure.test :refer :all]
             [blog.article.article-handler-impl :refer :all]))
