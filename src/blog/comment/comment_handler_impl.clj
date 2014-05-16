@@ -3,7 +3,8 @@
         blog.handler)
   (:require [blog.auth.auth-handler-impl :as helper]
             [blog.comment.comment-datastore :as cdb]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [blog.text-plugin.plugin :as plugin]))
 
 
 (def SAVE_ERROR_MSG "Could not save comment, because: ")
@@ -20,6 +21,14 @@
 
 (defn comment-text [{params :params}]
   (get params "comment-text" ""))
+
+(defn plugin-seq [component]
+  (map #(% component) (:plugins component)))
+
+(defn apply-plugins-comments [component comments]
+  (let [plugins (plugin-seq component)
+        transform-body #(update-in % [:text] plugin/apply-plugins plugins)]
+    (map transform-body comments)))
 
 
 ; server endpoints
@@ -42,10 +51,11 @@
         update-items #(map add-comment-count %)]
     (update-in resp [:data :items] update-items)))
 
-(defn extend-with-comments [{db :db} {{items :items} :data :as resp}]
+(defn extend-with-comments [{db :db :as this} {{items :items} :data :as resp}]
   (let [[article] items
         comments (cdb/read-comments db (:code article))
-        extended-article (assoc article :comments comments)]
+        processed-comments (apply-plugins-comments this comments)
+        extended-article (assoc article :comments processed-comments)]
     (assoc-in resp [:data :items] [extended-article])))
 
 

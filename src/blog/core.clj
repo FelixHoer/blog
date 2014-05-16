@@ -7,6 +7,7 @@
         blog.comment.comment-sql-datastore
         blog.theme.theme-handler
         blog.web-server.web-server
+        blog.text-plugin.escape-html
         blog.text-plugin.dropbox
         blog.text-plugin.smiley
         blog.text-plugin.google-map
@@ -26,6 +27,8 @@
 (def google-map-plugin (map->GoogleMapPlugin {:app-key GOOGLE_MAP_APP_KEY}))
 
 (def markdown-plugin (map->MarkdownPlugin {}))
+
+(def escape-html-plugin (map->EscapeHTMLPlugin {:preserve-ampersand? true}))
 
 
 ; components
@@ -62,7 +65,9 @@
               :password ""})
 (def comment-datastore (map->CommentSQLDatastore {:db DB_SPEC}))
 
-(def comment-handler (map->CommentHandler {}))
+(def comment-handler (map->CommentHandler {:plugins [:escape-html-plugin
+                                                     :smiley-plugin
+                                                     :markdown-plugin]}))
 
 
 ; system
@@ -80,22 +85,27 @@
                                   {:db :auth-datastore
                                    :next :article-handler})
 
+   :escape-html-plugin escape-html-plugin
    :dropbox-plugin dropbox-plugin
    :smiley-plugin smiley-plugin
    :google-map-plugin google-map-plugin
    :markdown-plugin markdown-plugin
+
    :article-datastore article-datastore
    :article-handler (component/using article-handler
                                      {:db :article-datastore
-                                      :markdown-plugin :markdown-plugin
                                       :dropbox-plugin :dropbox-plugin
                                       :smiley-plugin :smiley-plugin
                                       :google-map-plugin :google-map-plugin
+                                      :markdown-plugin :markdown-plugin
                                       :next :comment-handler})
 
    :comment-datastore comment-datastore
    :comment-handler (component/using comment-handler
-                                     {:db :comment-datastore})))
+                                     {:db :comment-datastore
+                                      :escape-html-plugin :escape-html-plugin
+                                      :smiley-plugin :smiley-plugin
+                                      :markdown-plugin :markdown-plugin})))
 
 
 ; main

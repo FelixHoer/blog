@@ -3,7 +3,7 @@
         blog.handler
         [blog.article.article-datastore :only [article-page article-month-page article]]
         [blog.article.helpers :only [pagination-urls]]
-        [blog.text-plugin.plugin :only [process]])
+        [blog.text-plugin.plugin :only [apply-plugins]])
   (:require [clojure.string :as string]))
 
 
@@ -11,11 +11,6 @@
 
 (defn plugin-seq [component]
   (map #(% component) (:plugins component)))
-
-(defn apply-plugins [body plugins]
-  (reduce (fn [current-body plugin] (process plugin current-body))
-          body
-          plugins))
 
 (defn apply-plugins-page [component page]
   (let [plugins (plugin-seq component)
