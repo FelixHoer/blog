@@ -7,10 +7,10 @@
         blog.comment.comment-sql-datastore
         blog.theme.theme-handler
         blog.web-server.web-server
-        blog.article-plugin.dropbox
-        blog.article-plugin.smiley
-        blog.article-plugin.google-map
-        blog.article-plugin.markdown)
+        blog.text-plugin.dropbox
+        blog.text-plugin.smiley
+        blog.text-plugin.google-map
+        blog.text-plugin.markdown)
   (:require [com.stuartsierra.component :as component]
             [clojure.string :as string]))
 

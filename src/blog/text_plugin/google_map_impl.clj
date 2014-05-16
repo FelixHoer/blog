@@ -1,4 +1,4 @@
-(ns blog.article-plugin.google-map-impl
+(ns blog.text-plugin.google-map-impl
   (:require [clojure.string :as string]))
 
 (defn build-query [app-key waypoints]

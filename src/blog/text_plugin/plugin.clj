@@ -1,4 +1,4 @@
-(ns blog.article-plugin.plugin)
+(ns blog.text-plugin.plugin)
 
 (defprotocol Plugin
   (process [this content]))

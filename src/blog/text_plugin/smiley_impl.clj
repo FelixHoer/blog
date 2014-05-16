@@ -1,4 +1,4 @@
-(ns blog.article-plugin.smiley-impl
+(ns blog.text-plugin.smiley-impl
   (:require [clojure.string :as string]))
 
 (def SMILEYS [[#"(0|O):-?\)|:angel:"  "face-angel.png"]

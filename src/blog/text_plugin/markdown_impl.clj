@@ -1,4 +1,4 @@
-(ns blog.article-plugin.markdown-impl
+(ns blog.text-plugin.markdown-impl
   (:require [markdown.core :as markdown]))
 
 (defn process-impl [this content]

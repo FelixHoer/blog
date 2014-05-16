@@ -3,7 +3,7 @@
         blog.handler
         [blog.article.article-datastore :only [article-page article-month-page article]]
         [blog.article.helpers :only [pagination-urls]]
-        [blog.article-plugin.plugin :only [process]])
+        [blog.text-plugin.plugin :only [process]])
   (:require [clojure.string :as string]))
 
 
