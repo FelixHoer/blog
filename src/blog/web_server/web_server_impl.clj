@@ -6,6 +6,22 @@
             [ring.adapter.jetty :as jetty]))
 
 
+; prevent framing (clickjacking)
+
+(defn wrap-anti-framing [handler]
+  (fn [req]
+    (let [resp (handler req)]
+      (assoc-in resp [:headers "X-Frame-Options"] "DENY"))))
+
+
+; prevent content type sniffing
+
+(defn wrap-anti-content-type-sniffing [handler]
+  (fn [req]
+    (let [resp (handler req)]
+      (assoc-in resp [:headers "X-Content-Type-Options"] "nosniff"))))
+
+
 ; content-type and charset middleware
 
 (defn has-no-extension [{uri :uri}]
@@ -71,8 +87,11 @@
       (wrap-extended-request)
       (wrap-content-type)
       (flash/wrap-flash)
-      (session/wrap-session)
-      (params/wrap-params)))
+      (session/wrap-session {:cookie-attrs {;:secure true
+                                            :http-only true}})
+      (params/wrap-params)
+      (wrap-anti-content-type-sniffing)
+      (wrap-anti-framing)))
 
 (defn start-impl [{old-server :server next :next port :port :as this}]
   (if old-server
