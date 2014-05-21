@@ -50,6 +50,7 @@
              "the-article"
              {:params {"comment-name" ""
                        "comment-text" "text"}
+              :scheme "http"
               :server-name "localhost"
               :server-port "8080"}
              {:status 302,
@@ -60,6 +61,7 @@
              "the-article"
              {:params {"comment-name" "name"
                        "comment-text" "text"}
+              :scheme "http"
               :server-name "localhost"
               :server-port "8080"}
              {:status 302,

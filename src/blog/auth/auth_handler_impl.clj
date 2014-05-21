@@ -14,8 +14,9 @@
 
 ; helpers
 
-(defn local-redirect [{server :server-name port :server-port} path]
-  (ring-response/redirect (str "http://" server
+(defn local-redirect [{scheme :scheme server :server-name port :server-port} path]
+  (ring-response/redirect (str (name scheme) "://"
+                               server
                                (if (seq (str port)) (str ":" port))
                                path)))
 

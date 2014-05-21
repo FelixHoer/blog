@@ -7,25 +7,29 @@
 
 (deftest auth-helpers
   (testing "local-redirect"
-    (is (= (local-redirect {:server-name "localhost"
+    (is (= (local-redirect {:scheme "http"
+                            :server-name "localhost"
                             :server-port "8080"}
                            "/next")
            {:status 302,
             :headers {"Location" "http://localhost:8080/next"},
             :body ""}))
-    (is (= (local-redirect {:server-name "localhost"
+    (is (= (local-redirect {:scheme "http"
+                            :server-name "localhost"
                             :server-port 8080}
                            "/next")
            {:status 302,
             :headers {"Location" "http://localhost:8080/next"},
             :body ""}))
-    (is (= (local-redirect {:server-name "localhost"
+    (is (= (local-redirect {:scheme "http"
+                            :server-name "localhost"
                             :server-port ""}
                            "/next")
            {:status 302,
             :headers {"Location" "http://localhost/next"},
             :body ""}))
-    (is (= (local-redirect {:server-name "localhost"}
+    (is (= (local-redirect {:scheme "http"
+                            :server-name "localhost"}
                            "/next")
            {:status 302,
             :headers {"Location" "http://localhost/next"},
@@ -51,13 +55,15 @@
            {:template :login})))
 
   (testing "enforce-auth"
-    (is (= (enforce-auth {:server-name "localhost"})
+    (is (= (enforce-auth {:scheme "http"
+                          :server-name "localhost"})
            {:status 302,
             :headers {"Location" "http://localhost/login"},
             :body ""})))
 
   (testing "process-login"
-    (is (= (process-login {:server-name "localhost"
+    (is (= (process-login {:scheme "http"
+                           :server-name "localhost"
                            :component {:db auth-db}
                            :session {:some-key 123}
                            :params {"username" "username"
@@ -68,7 +74,8 @@
                       :username "username"}
             :data {:flash {:info "You logged in successfully!"}}
             :body ""}))
-    (is (= (process-login {:server-name "localhost"
+    (is (= (process-login {:scheme "http"
+                           :server-name "localhost"
                            :component {:db auth-db}
                            :session {:some-key 123}
                            :params {"username" "username"

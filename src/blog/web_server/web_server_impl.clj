@@ -3,9 +3,50 @@
   (:require [ring.middleware.session :as session]
             [ring.middleware.params :as params]
             [ring.middleware.flash :as flash]
+            [ring.middleware.ssl :as ssl]
             [ring.middleware.anti-forgery :as forgery]
             [ring.util.anti-forgery :as forgery-util]
+            [ring.util.response :as resp]
+            [ring.util.request :as req]
             [ring.adapter.jetty :as jetty]))
+
+
+; redirect http requests to https
+; adapted from: https://github.com/ring-clojure/ring-ssl/blob/master/src/ring/middleware/ssl.clj
+
+(defn- get-request? [{method :request-method}]
+  (or (= method :head)
+      (= method :get)))
+
+(defn- request-url
+  "Return the full URL of the request."
+  [request]
+  (str (-> request :scheme name)
+       "://"
+       (:server-name request)
+       (if-let [port (:server-port request)]
+         (if-not (#{80 443} port) (str ":" port)))
+       (:uri request)
+       (if-let [query (:query-string request)]
+         (str "?" query))))
+
+(defn wrap-ssl-redirect
+  "Middleware that redirects any HTTP request to the equivalent HTTPS URL.
+
+  Accepts the following options:
+
+  :ssl-port - the request should be redirected to this port (defaults to the
+              port of the original request)"
+  [handler & [{:as options}]]
+  (fn [request]
+    (if (= (:scheme request) :https)
+      (handler request)
+      (-> request
+          (assoc :scheme :https)
+          (assoc :server-port (or (:ssl-port options) (:server-port request)))
+          (request-url)
+          (resp/redirect)
+          (resp/status   (if (get-request? request) 301 307))))))
 
 
 ; prevent framing (clickjacking)
@@ -101,17 +142,24 @@
       (wrap-content-type)
       (flash/wrap-flash)
       (forgery/wrap-anti-forgery)
-      (session/wrap-session {:cookie-attrs {;:secure true
+      (session/wrap-session {:cookie-attrs {:secure true
                                             :http-only true}})
       (params/wrap-params)
       (wrap-anti-content-type-sniffing)
-      (wrap-anti-framing)))
+      (wrap-anti-framing)
+      (ssl/wrap-hsts)
+      (ssl/wrap-forwarded-scheme)
+      (wrap-ssl-redirect {:ssl-port 8443})))
 
 (defn start-impl [{old-server :server next :next port :port :as this}]
   (if old-server
     this
     (let [handler (make-handler next)
           server (jetty/run-jetty handler {:port (or port 8080)
+                                           :ssl? true
+                                           :ssl-port 8443
+                                           :keystore "/tmp/keystore"
+                                           :key-password "jettypass"
                                            :join? false})]
       (assoc this :server server))))
 
