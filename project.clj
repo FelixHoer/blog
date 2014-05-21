@@ -7,6 +7,7 @@
                  [com.stuartsierra/component "0.2.1"]
                  [ring/ring-core "1.2.2"]
                  [ring/ring-jetty-adapter "1.2.2"]
+                 [ring/ring-anti-forgery "1.0.0-RC1"]
                  [compojure "1.1.6"]
                  [de.ubercode.clostache/clostache "1.3.1"]
                  [markdown-clj "0.9.41"]

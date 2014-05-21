@@ -3,6 +3,8 @@
   (:require [ring.middleware.session :as session]
             [ring.middleware.params :as params]
             [ring.middleware.flash :as flash]
+            [ring.middleware.anti-forgery :as forgery]
+            [ring.util.anti-forgery :as forgery-util]
             [ring.adapter.jetty :as jetty]))
 
 
@@ -46,6 +48,16 @@
       (:resp extended-resp))))
 
 
+; anti-forgery, handles CSRF Tokens
+
+(defn assoc-CSRF-field [req]
+  (assoc-in req [:resp :data :CSRF-field] (forgery-util/anti-forgery-field)))
+
+(defn wrap-anti-forgery-data [handler]
+  (fn [req]
+    (handler (assoc-CSRF-field req))))
+
+
 ; flash middleware
 
 (defn flash-request [{flash :flash :as req}]
@@ -64,7 +76,7 @@
       req)
     req))
 
-(defn wrap-flash [handler]
+(defn wrap-flash-data [handler]
   (fn [req]
     (let [f-req (flash-request req)
           h-req (handler f-req)]
@@ -83,10 +95,12 @@
 (defn make-handler [handler]
   (-> handler
       (wrap-handler-component)
-      (wrap-flash)
+      (wrap-flash-data)
+      (wrap-anti-forgery-data)
       (wrap-extended-request)
       (wrap-content-type)
       (flash/wrap-flash)
+      (forgery/wrap-anti-forgery)
       (session/wrap-session {:cookie-attrs {;:secure true
                                             :http-only true}})
       (params/wrap-params)
