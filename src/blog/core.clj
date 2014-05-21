@@ -18,13 +18,11 @@
 
 ; plugins
 
-(def DROPBOX_USER_ID "58952800")
-(def dropbox-plugin (map->DropboxPlugin {:user-id DROPBOX_USER_ID}))
+(def dropbox-plugin (map->DropboxPlugin {:user-id "DROPBOX_USER_ID"}))
 
 (def smiley-plugin (map->SmileyPlugin {}))
 
-(def GOOGLE_MAP_APP_KEY "APP_KEY")
-(def google-map-plugin (map->GoogleMapPlugin {:app-key GOOGLE_MAP_APP_KEY}))
+(def google-map-plugin (map->GoogleMapPlugin {:app-key "GOOGLE_MAP_APP_KEY"}))
 
 (def markdown-plugin (map->MarkdownPlugin {}))
 
@@ -33,24 +31,26 @@
 
 ; components
 
-(def web-server (map->WebServer {}))
+(def web-server (map->WebServer {:port 8080}))
 
-(def STATIC_RESOURCE_PATH "static")
-(def TEMPLATES_RESOURCE_PATH "templates")
-(def theme-handler (map->ThemeHandler {:template-resource-path TEMPLATES_RESOURCE_PATH
-                                       :static-resource-path STATIC_RESOURCE_PATH}))
+#_(def web-server (map->WebServer {:port 8080
+                                   :ssl {:via-reverse-proxy? true}}))
 
-(def AUTH_FILE_PATH "users.edn")
-(def auth-datastore (map->AuthFileDatastore {:path AUTH_FILE_PATH}))
+#_(def web-server (map->WebServer {:port 8080
+                                   :ssl {:keystore "/tmp/keystore"
+                                         :key-password "jettypass"
+                                         :ssl-port 8443}}))
+
+(def theme-handler (map->ThemeHandler {:template-resource-path "templates"
+                                       :static-resource-path "static"}))
+
+(def auth-datastore (map->AuthFileDatastore {:path "users.edn"}))
 
 (def auth-handler (map->AuthHandler {}))
 
-(def ARTICLES_PATH "articles")
-(def ARTICLES_PER_PAGE 5)
-(def RECENT_ARTICLES 10)
-(def article-datastore (map->ArticleFileDatastore {:article-path ARTICLES_PATH
-                                                   :articles-per-page ARTICLES_PER_PAGE
-                                                   :recent-articles RECENT_ARTICLES}))
+(def article-datastore (map->ArticleFileDatastore {:article-path "articles"
+                                                   :articles-per-page 5
+                                                   :recent-articles 10}))
 
 (def article-handler (map->ArticleHandler {:plugins [:dropbox-plugin
                                                      :smiley-plugin

@@ -133,7 +133,7 @@
 
 ; webserver definition
 
-(defn make-handler [handler]
+(defn wrap-normal-middleware [handler {ssl :ssl}]
   (-> handler
       (wrap-handler-component)
       (wrap-flash-data)
@@ -142,26 +142,37 @@
       (wrap-content-type)
       (flash/wrap-flash)
       (forgery/wrap-anti-forgery)
-      (session/wrap-session {:cookie-attrs {:secure true
+      (session/wrap-session {:cookie-attrs {:secure (boolean ssl)
                                             :http-only true}})
       (params/wrap-params)
       (wrap-anti-content-type-sniffing)
-      (wrap-anti-framing)
-      (ssl/wrap-hsts)
-      (ssl/wrap-forwarded-scheme)
-      (wrap-ssl-redirect {:ssl-port 8443})))
+      (wrap-anti-framing)))
 
-(defn start-impl [{old-server :server next :next port :port :as this}]
+(defn wrap-ssl-middleware [handler {ssl :ssl}]
+  (if ssl
+    (-> handler
+        (ssl/wrap-hsts)
+        (ssl/wrap-forwarded-scheme)
+        (wrap-ssl-redirect (select-keys ssl #{:ssl-port})))
+    handler))
+
+(defn make-handler [handler this]
+  (-> handler
+      (wrap-normal-middleware this)
+      (wrap-ssl-middleware this)))
+
+(defn start-impl [{old-server :server next :next port :port ssl :ssl :as this}]
   (if old-server
     this
-    (let [handler (make-handler next)
-          server (jetty/run-jetty handler {:port (or port 8080)
-                                           :ssl? true
-                                           :ssl-port 8443
-                                           :keystore "/tmp/keystore"
-                                           :key-password "jettypass"
-                                           :join? false})]
+    (let [handler (make-handler next this)
+          options (merge {:port (or port 80)
+                          :join? false}
+                         (if ssl
+                           (-> (select-keys ssl #{:ssl-port :keystore :key-password})
+                               (assoc :ssl? true))))
+          server (jetty/run-jetty handler options)]
       (assoc this :server server))))
+
 
 (defn stop-impl [{server :server :as this}]
   (if server
