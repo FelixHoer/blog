@@ -148,13 +148,15 @@
       (wrap-anti-content-type-sniffing)
       (wrap-anti-framing)))
 
-(defn wrap-ssl-middleware [handler {ssl :ssl}]
-  (if ssl
-    (-> handler
-        (ssl/wrap-hsts)
-        (ssl/wrap-forwarded-scheme)
-        (wrap-ssl-redirect (select-keys ssl #{:ssl-port})))
-    handler))
+(defn wrap-ssl-middleware [handler {{reverse-proxy? :via-reverse-proxy? :as ssl} :ssl}]
+  (if-not ssl
+    handler
+    (as-> handler h
+          (ssl/wrap-hsts h)
+          (wrap-ssl-redirect h (select-keys ssl #{:ssl-port}))
+          (if reverse-proxy?
+            (ssl/wrap-forwarded-scheme h)
+            h))))
 
 (defn make-handler [handler this]
   (-> handler
@@ -167,7 +169,7 @@
     (let [handler (make-handler next this)
           options (merge {:port (or port 80)
                           :join? false}
-                         (if ssl
+                         (if (and ssl (not (:via-reverse-proxy? ssl)))
                            (-> (select-keys ssl #{:ssl-port :keystore :key-password})
                                (assoc :ssl? true))))
           server (jetty/run-jetty handler options)]
