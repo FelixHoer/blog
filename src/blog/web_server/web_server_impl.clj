@@ -8,7 +8,8 @@
             [ring.util.anti-forgery :as forgery-util]
             [ring.util.response :as resp]
             [ring.util.request :as req]
-            [ring.adapter.jetty :as jetty]))
+            [ring.adapter.jetty :as jetty]
+            [clojure.string :as str]))
 
 
 ; redirect http requests to https
@@ -63,6 +64,21 @@
   (fn [req]
     (let [resp (handler req)]
       (assoc-in resp [:headers "X-Content-Type-Options"] "nosniff"))))
+
+
+; define a content security polics
+
+(defn build-csp [csp]
+  (->> csp
+      (map (fn [[k v]] (str/join " " (cons (name k) v))))
+      (str/join "; ")))
+
+(defn wrap-content-security-policy [handler csp]
+  (if-not csp
+    handler
+    (fn [req]
+      (let [resp (handler req)]
+        (assoc-in resp [:headers "Content-Security-Policy"] (build-csp csp))))))
 
 
 ; content-type and charset middleware
@@ -133,7 +149,7 @@
 
 ; webserver definition
 
-(defn wrap-normal-middleware [handler {ssl :ssl}]
+(defn wrap-normal-middleware [handler {csp :csp ssl :ssl}]
   (-> handler
       (wrap-handler-component)
       (wrap-flash-data)
@@ -145,6 +161,7 @@
       (session/wrap-session {:cookie-attrs {:secure (boolean ssl)
                                             :http-only true}})
       (params/wrap-params)
+      (wrap-content-security-policy csp)
       (wrap-anti-content-type-sniffing)
       (wrap-anti-framing)))
 

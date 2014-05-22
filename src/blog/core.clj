@@ -31,15 +31,28 @@
 
 ; components
 
-(def web-server (map->WebServer {:port 8080}))
+(def CSP {:default-src ["'self'"]
+          :img-src     ["*"]
+          :script-src  ["https://ajax.googleapis.com"
+                        "https://oss.maxcdn.com"
+                        "https://netdna.bootstrapcdn.com"]
+          :style-src   ["'self'"
+                        "https://netdna.bootstrapcdn.com"]
+          :font-src    ["https://netdna.bootstrapcdn.com"]
+          :frame-src   ["https://www.google.com/maps/embed/"]})
+
+(def web-server (map->WebServer {:port 8080
+                                 :csp CSP}))
 
 #_(def web-server (map->WebServer {:port 8080
-                                   :ssl {:via-reverse-proxy? true}}))
+                                   :ssl {:via-reverse-proxy? true}
+                                   :csp CSP}))
 
 #_(def web-server (map->WebServer {:port 8080
                                    :ssl {:keystore "/tmp/keystore"
                                          :key-password "jettypass"
-                                         :ssl-port 8443}}))
+                                         :ssl-port 8443}
+                                   :csp CSP}))
 
 (def theme-handler (map->ThemeHandler {:template-resource-path "templates"
                                        :static-resource-path "static"}))
@@ -63,6 +76,7 @@
                                          "sql.syntax_pgs=true"])
               :user "SA"
               :password ""})
+
 (def comment-datastore (map->CommentSQLDatastore {:db DB_SPEC}))
 
 (def comment-handler (map->CommentHandler {:plugins [:escape-html-plugin
