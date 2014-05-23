@@ -13,15 +13,15 @@
     (are [req n] (= (comment-name req) n)
          {}                                 ""
          {:session {:username "name"}}      "name"
-         {:params {"comment-name" "name"}}  "name"
+         {:form-params {"comment-name" "name"}}  "name"
          {:session {:username "name1"}
-          :params {"comment-name" "name2"}} "name1"))
+          :form-params {"comment-name" "name2"}} "name1"))
 
   (testing "comment-text"
     (are [req t] (= (comment-text req) t)
          {} ""
-         {:params {}} ""
-         {:params {"comment-text" "text"}} "text")))
+         {:form-params {}} ""
+         {:form-params {"comment-text" "text"}} "text")))
 
 
 ; test endpoints
@@ -48,8 +48,8 @@
         (are [code req resp] (= (save-comment com code req) resp)
 
              "the-article"
-             {:params {"comment-name" ""
-                       "comment-text" "text"}
+             {:form-params {"comment-name" ""
+                            "comment-text" "text"}
               :scheme "http"
               :server-name "localhost"
               :server-port "8080"}
@@ -59,8 +59,8 @@
               :body ""}
 
              "the-article"
-             {:params {"comment-name" "name"
-                       "comment-text" "text"}
+             {:form-params {"comment-name" "name"
+                            "comment-text" "text"}
               :scheme "http"
               :server-name "localhost"
               :server-port "8080"}

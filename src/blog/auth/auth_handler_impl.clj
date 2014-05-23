@@ -29,9 +29,9 @@
 (defn login [req]
   {:template :login})
 
-(defn process-login [{:keys [session params component resp] :as req}]
-  (let [username (get params "username")
-        password (get params "password")]
+(defn process-login [{:keys [session form-params component resp] :as req}]
+  (let [username (get form-params "username")
+        password (get form-params "password")]
     (if (authenticate (:db component) username password)
       (deep-merge (local-redirect req "/")
                   {:session {:logged-in true

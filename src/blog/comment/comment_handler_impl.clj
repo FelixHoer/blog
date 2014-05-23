@@ -14,12 +14,12 @@
 (defn now []
   (java.util.Date.))
 
-(defn comment-name [{:keys [params session]}]
+(defn comment-name [{:keys [form-params session]}]
   (or (get session :username)
-      (get params "comment-name")
+      (get form-params "comment-name")
       ""))
 
-(defn comment-text [{params :params}]
+(defn comment-text [{params :form-params}]
   (get params "comment-text" ""))
 
 (defn plugin-seq [component]

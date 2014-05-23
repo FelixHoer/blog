@@ -66,8 +66,8 @@
                            :server-name "localhost"
                            :component {:db auth-db}
                            :session {:some-key 123}
-                           :params {"username" "username"
-                                    "password" "password"}})
+                           :form-params {"username" "username"
+                                         "password" "password"}})
            {:status 302,
             :headers {"Location" "http://localhost/"},
             :session {:logged-in true
@@ -78,7 +78,7 @@
                            :server-name "localhost"
                            :component {:db auth-db}
                            :session {:some-key 123}
-                           :params {"username" "username"
-                                    "password" "wrong password"}})
+                           :form-params {"username" "username"
+                                         "password" "wrong password"}})
            {:template :login,
             :data {:flash {:warning "Username and/or Password was incorrect!"}}}))))
