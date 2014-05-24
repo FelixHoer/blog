@@ -58,7 +58,7 @@
       (login req))
     (POST "/login" req
       (process-login req))
-    (GET "/logout" req
+    (POST "/logout" req
       (process-logout req))))
 
 

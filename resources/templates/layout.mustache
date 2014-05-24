@@ -25,9 +25,12 @@
         <a class="navbar-brand" href="/">Title</a>
         <p class="navbar-text">Subtitle</p>
         {{#session.username}}
+        <form class="navbar-form navbar-right" action="/logout" method="post">
+          <button type="submit" class="btn btn-link">Log out.</button>
+          {{{CSRF-field}}}
+        </form>
         <p class="navbar-text navbar-right">
           Logged in as {{session.username}}.
-          <a href="/logout">Log out.</a>
         </p>
         {{/session.username}}
       </div>
