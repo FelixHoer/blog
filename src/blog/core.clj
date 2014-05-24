@@ -1,6 +1,7 @@
 (ns blog.core
   (:use blog.auth.auth-handler
         blog.auth.auth-file-datastore
+        blog.auth.auth-sql-datastore
         blog.article.article-handler
         blog.article.article-file-datastore
         blog.comment.comment-handler
@@ -57,7 +58,16 @@
 (def theme-handler (map->ThemeHandler {:template-resource-path "templates"
                                        :static-resource-path "static"}))
 
-(def auth-datastore (map->AuthFileDatastore {:path "users.edn"}))
+
+(def DB_SPEC {:subprotocol "hsqldb"
+              :subname (string/join ";" ["file:/tmp/test-db/blogdb"
+                                         "shutdown=true"
+                                         "sql.syntax_pgs=true"])
+              :user "SA"
+              :password ""})
+
+(def auth-datastore (map->AuthSQLDatastore {:db DB_SPEC}))
+#_(def auth-datastore (map->AuthFileDatastore {:path "users.edn"}))
 
 (def auth-handler (map->AuthHandler {}))
 
@@ -69,13 +79,6 @@
                                                      :smiley-plugin
                                                      :google-map-plugin
                                                      :markdown-plugin]}))
-
-(def DB_SPEC {:subprotocol "hsqldb"
-              :subname (string/join ";" ["file:/tmp/test-db/blogdb"
-                                         "shutdown=true"
-                                         "sql.syntax_pgs=true"])
-              :user "SA"
-              :password ""})
 
 (def comment-datastore (map->CommentSQLDatastore {:db DB_SPEC}))
 
