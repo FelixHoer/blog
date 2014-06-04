@@ -4,6 +4,7 @@
         blog.auth.auth-sql-datastore
         blog.article.article-handler
         blog.article.article-file-datastore
+        blog.article.article-sql-datastore
         blog.comment.comment-handler
         blog.comment.comment-sql-datastore
         blog.theme.theme-handler
@@ -71,9 +72,13 @@
 
 (def auth-handler (map->AuthHandler {}))
 
-(def article-datastore (map->ArticleFileDatastore {:article-path "articles"
-                                                   :articles-per-page 5
-                                                   :recent-articles 10}))
+(def article-datastore (map->ArticleSQLDatastore {:db DB_SPEC
+                                                  :articles-per-page 5
+                                                  :recent-articles 10}))
+
+#_(def article-datastore (map->ArticleFileDatastore {:article-path "articles"
+                                                     :articles-per-page 5
+                                                     :recent-articles 10}))
 
 (def article-handler (map->ArticleHandler {:plugins [:dropbox-plugin
                                                      :smiley-plugin
