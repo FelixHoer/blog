@@ -1,9 +1,9 @@
 (ns blog.article.article-sql-datastore-impl
-  (:use blog.article.helpers)
-  (:require [clojure.java.jdbc :as jdbc]))
+  (:require [clojure.java.jdbc :as jdbc]
+            [blog.article.helpers :as helpers]))
 
 
-; setup operations
+;;;; setup operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn create-article-table [{db :db}]
   (jdbc/db-do-commands db
@@ -14,7 +14,9 @@
   :ok)
 
 
-; add article
+;;;; management operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; add article
 
 (defn add-article [{db :db} {:keys [name date body]}]
   (jdbc/insert! db :article {:name name
@@ -23,28 +25,30 @@
   :ok)
 
 
-; edit article
+;;; edit article
 
 (defn edit-article [{db :db} code new-body]
   (jdbc/update! db :article {:body new-body} ["name = ?" code])
   :ok)
 
 
-; delete article
+;;; delete article
 
 (defn delete-article [{db :db} code]
   (jdbc/delete! db :article ["name = ?" code])
   :ok)
 
 
-; helpers
+;;;; usage operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; helpers
 
 (defn build-article-item [{:keys [name body]}]
-  (merge (parse-article-code name)
+  (merge (helpers/parse-article-code name)
          {:body body}))
 
 
-; paginated main list
+;;; paginated main list
 
 (defn select-article-page [{:keys [db articles-per-page]} page-num]
   (jdbc/query db [(str "SELECT name, body "
@@ -73,7 +77,7 @@
            (if has-next?     {:next-page     (inc page-num)}))))
 
 
-; paginated month list
+;;; paginated month list
 
 (defn select-article-month-page [{:keys [db articles-per-page]} page-num {:keys [month year]}]
   (jdbc/query db [(str "SELECT name, body "
@@ -98,7 +102,7 @@
               :result-set-fn first))
 
 (defn article-month-page [{articles-per-page :articles-per-page :as this} month page-num]
-  (let [date (parse-article-code month)
+  (let [date (helpers/parse-article-code month)
         items (select-article-month-page this page-num date)
         article-count (select-article-month-count this date)
         has-next? (< (* (inc page-num) articles-per-page) article-count)
@@ -109,7 +113,7 @@
            (if has-next?     {:next-page     (inc page-num)}))))
 
 
-; single article
+;;; single article
 
 (defn select-article [{db :db} code]
   (jdbc/query db [(str "SELECT name, body "
@@ -123,7 +127,7 @@
    :current-page 0})
 
 
-; sidebar
+;;; sidebar
 
 (defn select-recent-articles [{db :db recent-articles :recent-articles}]
   (jdbc/query db [(str "SELECT name "
@@ -131,11 +135,11 @@
                        "ORDER BY date "
                        "LIMIT ?")
                   recent-articles]
-              :row-fn (comp parse-article-code :name)))
+              :row-fn (comp helpers/parse-article-code :name)))
 
 (defn parse-article-date [{month :c1 year :c2}]
   (let [code (format "%4d-%02d" year month)]
-    (parse-article-code code)))
+    (helpers/parse-article-code code)))
 
 (defn select-archive-months [{db :db}]
   (jdbc/query db [(str "SELECT DISTINCT MONTH(date), YEAR(date), date "
@@ -148,7 +152,7 @@
    :archive-months (select-archive-months this)})
 
 
-; component
+;;; protocol implementation
 
 (defn article-impl [this code]
   (merge (article this code)
