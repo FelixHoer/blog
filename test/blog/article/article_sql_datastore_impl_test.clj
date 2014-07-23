@@ -124,3 +124,62 @@
                              :day "02",
                              :month "06",
                              :year "2014"}]})))))))
+
+(deftest sql-datastore-management
+  (let [db-spec {:subprotocol "hsqldb"
+                 :subname (str "mem:testdb"
+                               ";shutdown=true"
+                               ";sql.syntax_pgs=true")
+                 :user "SA"
+                 :password ""}]
+    (jdbc/with-db-connection [con db-spec]
+      (let [com {:db con
+                 :articles-per-page 5
+                 :recent-articles 10}]
+
+        (testing "create-article-table"
+          (is (= (create-article-table com)
+                 :ok)))
+
+        (testing "add-article"
+          (is (= (add-article com {:name "2014-06-02-title"
+                                   :date (.getTime (java.util.GregorianCalendar. 2014 (dec 6) 2))
+                                   :body "body"})
+                 :ok)))
+
+        (testing "article-page"
+          (is (= (article-page com 0)
+                 {:current-page 0,
+                  :items [{:body "body",
+                           :code "2014-06-02-title",
+                           :title "Title",
+                           :month-name "June",
+                           :day "02",
+                           :month "06",
+                           :year "2014"}]})))
+
+        (testing "edit-article"
+          (is (= (edit-article com "2014-06-02-title" "edited body")
+                 :ok)))
+
+        (testing "article-page"
+          (is (= (article-page com 0)
+                 {:current-page 0,
+                  :items [{:body "edited body",
+                           :code "2014-06-02-title",
+                           :title "Title",
+                           :month-name "June",
+                           :day "02",
+                           :month "06",
+                           :year "2014"}]})))
+
+        (testing "delete-article"
+          (is (= (delete-article com "2014-06-02-title")
+                 :ok)))
+
+        (testing "article-page"
+          (is (= (article-page com 0)
+                 {:current-page 0,
+                  :items []})))
+
+        ))))

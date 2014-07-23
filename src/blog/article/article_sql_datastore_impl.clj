@@ -23,6 +23,20 @@
   :ok)
 
 
+; edit article
+
+(defn edit-article [{db :db} code new-body]
+  (jdbc/update! db :article {:body new-body} ["name = ?" code])
+  :ok)
+
+
+; delete article
+
+(defn delete-article [{db :db} code]
+  (jdbc/delete! db :article ["name = ?" code])
+  :ok)
+
+
 ; helpers
 
 (defn build-article-item [{:keys [name body]}]
