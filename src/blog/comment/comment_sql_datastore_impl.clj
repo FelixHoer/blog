@@ -1,14 +1,15 @@
 (ns blog.comment.comment-sql-datastore-impl
   (:require [clojure.java.jdbc :as jdbc]
-            [blog.comment.comment-datastore :as ds]
+            [blog.comment.comment-datastore :as spec]
             [clojure.string :as string]))
 
 
-; setup operations
+;;;; setup operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn create-comment-table [{db :db}]
   (jdbc/db-do-commands db
     (jdbc/create-table-ddl :comment
+                           [:id      "serial"]
                            [:name    "varchar(255)"]
                            [:time    "datetime"]
                            [:text    "text"]
@@ -16,7 +17,18 @@
   :ok)
 
 
-; validation
+;;;; management operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; delete comment
+
+(defn delete-comment [{db :db} comment-id]
+  (jdbc/delete! db :comment ["id = ?" comment-id])
+  :ok)
+
+
+;;;; usage operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; validation
 
 (def validation-tests [
   [#(-> % :name string/blank?) "Name is blank."]
@@ -29,7 +41,7 @@
     (seq (remove nil? results))))
 
 
-; datastore operations
+;;; insert comment
 
 (defn insert-comment [{db :db} {:keys [name text time]} article-code]
   (jdbc/insert! db :comment {:name name
@@ -37,6 +49,9 @@
                              :text text
                              :article article-code})
   :ok)
+
+
+;;; select comment counts (for multiple articles)
 
 (defn select-comment-count [db article-code]
   (jdbc/query db [(str "SELECT COUNT(*) "
@@ -59,18 +74,21 @@
          (map (fn [c] [c (select-comment-count con c)]))
          (into {}))))
 
+
+;;; select comments
+
 (defn select-comments [{db :db} article-code]
-  (jdbc/query db [(str "SELECT name, time, text "
+  (jdbc/query db [(str "SELECT id, name, time, text "
                        "FROM comment "
                        "WHERE article = ? "
                        "ORDER BY time DESC")
                   article-code]
-              :row-fn ds/map->Comment))
+              :row-fn spec/map->Comment))
 
 
-; component
+;;; protocol implementation
 
-(defn save-comment-impl [this comment article-code]
+(defn save-comment [this comment article-code]
   (if-let [errors (validation-errors comment)]
     errors
     (let [result (insert-comment this comment article-code)]
@@ -78,8 +96,8 @@
         nil
         [result]))))
 
-(defn read-comment-counts-impl [this article-codes]
+(defn read-comment-counts [this article-codes]
   (select-comment-counts this article-codes))
 
-(defn read-comments-impl [this article-code]
+(defn read-comments [this article-code]
   (select-comments this article-code))

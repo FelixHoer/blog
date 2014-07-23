@@ -76,3 +76,37 @@
                {"the-article" 1}))
         (is (= (select-comment-counts {:db con} ["the-wrong-article"])
                {"the-wrong-article" 0}))))))
+
+
+; test functions that manage the database entries
+
+(deftest database-management-operations
+  (let [db-spec {:subprotocol "hsqldb"
+                :subname (str "mem:testdb"
+                              ";shutdown=true"
+                              ";sql.syntax_pgs=true")
+                :user "SA"
+                :password ""}]
+    (jdbc/with-db-connection [con db-spec]
+
+      (testing "create-comment-table"
+        (is (= (create-comment-table {:db con})
+               :ok)))
+
+      (testing "insert-comment"
+        (is (= (insert-comment {:db con}
+                               {:name "some author"
+                                :text "some text"
+                                :time (java.util.Date.)}
+                       "the-article")
+               :ok)))
+
+      (testing "delete-comment"
+        (let [[c] (select-comments {:db con} "the-article")]
+          (are [k v] (= (k c) v)
+               :name "some author"
+               :text "some text")
+          (is (= (delete-comment {:db con} (:id c))
+                 :ok))
+          (is (= (select-comments {:db con} "the-article")
+                 [])))))))

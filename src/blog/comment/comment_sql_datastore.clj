@@ -1,13 +1,15 @@
 (ns blog.comment.comment-sql-datastore
-  (:use blog.comment.comment-datastore
-        [blog.comment.comment-sql-datastore-impl
-         :only [save-comment-impl read-comments-impl read-comment-counts-impl]]))
+  (:require [blog.comment.comment-datastore :as spec]
+            [blog.comment.comment-sql-datastore-impl :as impl]))
 
 (defrecord CommentSQLDatastore [db]
-  CommentDatastore
+  spec/CommentDatastore
     (save-comment [this comment article-code]
-      ((var save-comment-impl) this comment article-code))
+      (impl/save-comment this comment article-code))
     (read-comment-counts [this article-codes]
-      ((var read-comment-counts-impl) this article-codes))
+      (impl/read-comment-counts this article-codes))
     (read-comments [this article-code]
-      ((var read-comments-impl) this article-code)))
+      (impl/read-comments this article-code))
+  spec/CommentManagementDatastore
+    (delete-comment [this comment-id]
+      (impl/delete-comment this comment-id)))
