@@ -11,10 +11,10 @@
 (deftest helpers
   (testing "comment-name"
     (are [req n] (= (comment-name req) n)
-         {}                                 ""
-         {:session {:username "name"}}      "name"
+         {}                                      ""
+         {:session {:user {:username "name"}}}   "name"
          {:form-params {"comment-name" "name"}}  "name"
-         {:session {:username "name1"}
+         {:session {:user {:username "name1"}}
           :form-params {"comment-name" "name2"}} "name1"))
 
   (testing "comment-text"

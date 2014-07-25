@@ -23,6 +23,11 @@
 (defn is-logged-in? [session]
   (:logged-in session))
 
+(defn is-logged-in-as? [session role]
+  (and (:logged-in session)
+       (= role
+          (get-in session [:user :role]))))
+
 
 ; server endpoints
 
@@ -32,10 +37,10 @@
 (defn process-login [{:keys [session form-params component resp] :as req}]
   (let [username (get form-params "username")
         password (get form-params "password")]
-    (if (authenticate (:db component) username password)
+    (if-let [user (authenticate (:db component) username password)]
       (deep-merge (local-redirect req "/")
                   {:session {:logged-in true
-                             :username username}
+                             :user user}
                    :data {:flash {:info LOGIN_SUCCESS_MSG}}})
 
       {:template :login

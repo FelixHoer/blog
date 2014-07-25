@@ -1,16 +1,20 @@
 (ns blog.auth.auth-sql-datastore-impl
   (:require [clojure.java.jdbc :as jdbc]
-            [crypto.password.scrypt :as password]))
+            [crypto.password.scrypt :as password]
+            [blog.auth.auth-datastore :as spec]))
 
 
-;;; helper
+;;; helpers
 
 (defmacro expect [res form]
   `(try
     (if (= ~res ~form)
       :ok
       :fail)
-    (catch Exception e# :fail)))
+    (catch Exception e# [:fail e#])))
+
+(defn sql-user->User [m]
+  (spec/map->User (update-in m [:role] keyword)))
 
 
 ;;;; setup operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -18,18 +22,21 @@
 (defn create-auth-table [{db :db}]
   (jdbc/db-do-commands db
     (jdbc/create-table-ddl :auth
-                           [:user      "varchar(255)" "UNIQUE"]
+                           [:username  "varchar(255)" "UNIQUE"]
                            [:key       "varchar(255)"]
-                           [:confirmed "boolean" "NOT NULL" "DEFAULT FALSE"]))
+                           [:confirmed "boolean" "DEFAULT FALSE"]
+                           [:role      "varchar(255)" "DEFAULT 'user'"]))
   :ok)
 
 ;;; add credentials to db
 
-(defn add-credentials [{db :db} user pwd confirmed?]
+(defn add-user [{db :db} {:keys [username password confirmed role]
+                          :or {role :user confirmed false}}]
   (expect [nil] ; no modified row, just added
-          (jdbc/insert! db :auth {:user user
-                                  :key (password/encrypt pwd)
-                                  :confirmed confirmed?})))
+          (jdbc/insert! db :auth {:username username
+                                  :key (password/encrypt password)
+                                  :confirmed confirmed
+                                  :role (name role)})))
 
 
 ;;;; management operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -37,23 +44,27 @@
 ;;; sign up (done by user)
 
 (defn username-exists? [db user]
-  (jdbc/query db [(str "SELECT * "
-                       "FROM auth "
-                       "WHERE auth.user = ?")
-                  user]
+  (jdbc/query db
+              [(str "SELECT * "
+                    "FROM auth "
+                    "WHERE username = ?")
+               user]
               :result-set-fn (comp not empty?)))
 
 (defn sign-up [{db :db :as this} user pwd]
   (if (username-exists? db user)
     :already-taken
-    (add-credentials this user pwd false)))
+    (add-user this {:username user
+                    :password pwd})))
 
 
 ;;; list all users
 
 (defn list-users [{db :db}]
-  (jdbc/query db [(str "SELECT auth.user, auth.confirmed "
-                       "FROM auth")]))
+  (jdbc/query db
+              [(str "SELECT username, confirmed, role "
+                    "FROM auth")]
+              :row-fn sql-user->User))
 
 
 ;;; set an user's status to confirmed
@@ -63,7 +74,7 @@
           (jdbc/update! db
                         :auth
                         {:confirmed true}
-                        ["auth.user = ?" user])))
+                        ["username = ?" user])))
 
 
 ;;; delete an user
@@ -72,25 +83,24 @@
   (expect [1] ; one modified row
           (jdbc/delete! db
                         :auth
-                        ["auth.user = ?" user])))
+                        ["username = ?" user])))
 
 
 ;;;; user operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; check credentials / authenticate
 
-(defn select-key [db user]
-  (jdbc/query db [(str "SELECT key "
-                       "FROM auth "
-                       "WHERE auth.confirmed = TRUE "
-                       "AND auth.user = ?")
-                  user]
-              :row-fn :key
+(defn select-user [db user]
+  (jdbc/query db
+              [(str "SELECT username, confirmed, role, key "
+                    "FROM auth "
+                    "WHERE confirmed = TRUE "
+                    "  AND username = ?")
+               user]
+              :row-fn sql-user->User
               :result-set-fn first))
 
-(defn check-credentials-in-db [db user pwd]
-  (if-let [key (select-key db user)]
-    (password/check pwd key)))
-
-(defn authenticate [{db :db} user pwd]
-  (check-credentials-in-db db user pwd))
+(defn authenticate [{db :db} username pwd]
+  (if-let [user (select-user db username)]
+    (if (password/check pwd (:key user))
+      (dissoc user :key))))

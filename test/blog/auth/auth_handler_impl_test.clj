@@ -1,7 +1,7 @@
 (ns blog.auth.auth-handler-impl-test
-  (:use blog.auth.auth-datastore)
   (:require [clojure.test :refer :all]
-            [blog.auth.auth-handler-impl :refer :all]))
+            [blog.auth.auth-handler-impl :refer :all]
+            [blog.auth.auth-datastore :refer :all]))
 
 ; test helpers
 
@@ -44,8 +44,11 @@
 (defrecord MockAuthDB []
   AuthDatastore
     (authenticate [this username pwd]
-      (and (= "username" username)
-           (= "password" pwd))))
+      (if (and (= "username" username)
+               (= "password" pwd))
+        (map->User {:username username
+                    :role :user
+                    :confirmed true}))))
 
 (def auth-db (map->MockAuthDB {}))
 
@@ -71,7 +74,10 @@
            {:status 302,
             :headers {"Location" "http://localhost/"},
             :session {:logged-in true
-                      :username "username"}
+                      :user (map->User {:username "username"
+                                        :password nil
+                                        :role :user
+                                        :confirmed true})}
             :data {:flash {:info "You logged in successfully!"}}
             :body ""}))
     (is (= (process-login {:scheme "http"

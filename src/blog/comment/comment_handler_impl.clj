@@ -15,7 +15,7 @@
   (java.util.Date.))
 
 (defn comment-name [{:keys [form-params session]}]
-  (or (get session :username)
+  (or (get-in session [:user :username])
       (get form-params "comment-name")
       ""))
 

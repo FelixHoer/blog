@@ -1,5 +1,7 @@
 (ns blog.auth.auth-datastore)
 
+(defrecord User [username password confirmed role])
+
 (defprotocol AuthDatastore
   (authenticate [this username password]))
 

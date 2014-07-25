@@ -1,6 +1,7 @@
 (ns blog.auth.auth-sql-datastore-impl-test
   (:require [clojure.test :refer :all]
             [blog.auth.auth-sql-datastore-impl :refer :all]
+            [blog.auth.auth-datastore :as spec]
             [clojure.java.jdbc :as jdbc]))
 
 
@@ -17,14 +18,14 @@
         (is (= (create-auth-table {:db con})
                :ok)))
 
-      (testing "add-credentials"
-        (is (= (add-credentials {:db con}
-                                "correct user"
-                                "correct password"
-                                true)
+      (testing "add-user"
+        (is (= (add-user {:db con}
+                         {:username "correct user"
+                          :password "correct password"
+                          :confirmed true})
                :ok)))
 
-      (testing "authenticate-impl"
+      (testing "authenticate"
         (is (authenticate {:db con}
                           "correct user"
                           "correct password"))
@@ -62,10 +63,12 @@
                :already-taken)))
 
       ; list
-      (testing "list-users"
+      (testing "list-users (should be unconfirmed)"
         (is (= (list-users {:db con})
-               [{:user "correct user"
-                 :confirmed false}])))
+               [(spec/map->User {:username "correct user"
+                                 :confirmed false
+                                 :role :user
+                                 :password nil})])))
 
       ; confirm
       (testing "confirm user"
@@ -81,10 +84,12 @@
                :fail)))
 
       ; list
-      (testing "list-users"
+      (testing "list-users (should be confirmed)"
         (is (= (list-users {:db con})
-               [{:user "correct user"
-                 :confirmed true}])))
+               [(spec/map->User {:username "correct user"
+                                 :confirmed true
+                                 :role :user
+                                 :password nil})])))
 
       ; delete
       (testing "delete user"
