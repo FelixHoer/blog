@@ -1,8 +1,8 @@
 (ns blog.comment.comment-handler-impl
-  (:use compojure.core
-        blog.handler)
+  (:use compojure.core)
   (:require [blog.auth.auth-handler-impl :as helper]
             [blog.comment.comment-datastore :as cdb]
+            [blog.handler :as handler]
             [clojure.string :as string]
             [blog.text-plugin.plugin :as plugin]))
 
@@ -39,9 +39,9 @@
                                    :text (comment-text req)})
         errors (cdb/save-comment db comment article-code)]
     (if errors
-      (deep-merge (helper/local-redirect req (str "/articles/" article-code))
-                  {:data {:flash {:warning (str SAVE_ERROR_MSG
-                                                (string/join " " errors))}}})
+      (handler/deep-merge (helper/local-redirect req (str "/articles/" article-code))
+                          {:data {:flash {:warning (str SAVE_ERROR_MSG
+                                                        (string/join " " errors))}}})
       (helper/local-redirect req (str "/articles/" article-code "#comments")))))
 
 (defn extend-with-comment-counts [{db :db} {{items :items} :data :as resp}]
@@ -75,16 +75,11 @@
 
 ; component
 
-(defn start-impl [this]
-  this)
-
-(defn stop-impl [this]
-  this)
-
-(defn handle-impl [{next :next :as this} req]
+(defn handle [this next-handler req]
   (let [extended-req (assoc req :component this)
-        resp (comment-routes extended-req)
-        next-req (update-in req [:resp] deep-merge resp)]
-    (if next
-      (handle next next-req)
-      next-req)))
+          resp (comment-routes extended-req)
+          next-req (update-in req [:resp] handler/deep-merge resp)]
+      (next-handler next-req)))
+
+(defn wrap-handler [this next-handler]
+  #(handle this next-handler %))

@@ -1,13 +1,15 @@
 (ns blog.theme.theme-handler
-  (:use [blog.handler :only [Handler]]
-        [blog.theme.theme-handler-impl :only [start-impl stop-impl handle-impl]])
-  (:require [com.stuartsierra.component :as component]))
+  (:require [com.stuartsierra.component :as component]
+            [blog.handler :as handler]
+            [blog.theme.theme-handler-impl :as impl]))
 
 (defrecord ThemeHandler [template-resource-path static-resource-path ; config
-                         next ; other components
                          templates static-routes] ; local data
   component/Lifecycle
-    (start [this] ((var start-impl) this))
-    (stop  [this] ((var stop-impl)  this))
-  Handler
-    (handle [this req] ((var handle-impl) this req)))
+    (start [this]
+      (impl/start this))
+    (stop [this]
+      (impl/stop this))
+  handler/Handler
+    (wrap-handler [this next-handler]
+      (impl/wrap-handler this next-handler)))

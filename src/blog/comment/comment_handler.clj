@@ -1,12 +1,8 @@
 (ns blog.comment.comment-handler
-  (:use blog.handler
-        [blog.comment.comment-handler-impl
-         :only [start-impl stop-impl handle-impl]])
-  (:require [com.stuartsierra.component :as component]))
+  (:require [blog.handler :as handler]
+            [blog.comment.comment-handler-impl :as impl]))
 
-(defrecord CommentHandler [db next]
-  component/Lifecycle
-    (start [this] ((var start-impl) this))
-    (stop  [this] ((var stop-impl)  this))
-  Handler
-    (handle [this req] ((var handle-impl) this req)))
+(defrecord CommentHandler [db]
+  handler/Handler
+    (wrap-handler [this next-handler]
+      (impl/wrap-handler this next-handler)))

@@ -44,17 +44,29 @@
           :frame-src   ["https://www.google.com/maps/embed/"]})
 
 (def web-server (map->WebServer {:port 8080
-                                 :csp CSP}))
+                                 :csp CSP
+                                 :handlers [:theme-handler
+                                            :auth-handler
+                                            :article-handler
+                                            :comment-handler]}))
 
 #_(def web-server (map->WebServer {:port 8080
                                    :ssl {:via-reverse-proxy? true}
-                                   :csp CSP}))
+                                   :csp CSP
+                                   :handlers [:theme-handler
+                                              :auth-handler
+                                              :article-handler
+                                              :comment-handler]}))
 
 #_(def web-server (map->WebServer {:port 8080
                                    :ssl {:keystore "/tmp/keystore"
                                          :key-password "jettypass"
                                          :ssl-port 8443}
-                                   :csp CSP}))
+                                   :csp CSP
+                                   :handlers [:theme-handler
+                                              :auth-handler
+                                              :article-handler
+                                              :comment-handler]}))
 
 (def theme-handler (map->ThemeHandler {:template-resource-path "templates"
                                        :static-resource-path "static"}))
@@ -97,37 +109,37 @@
 (def system
   (component/system-map
    :web-server (component/using web-server
-                                {:next :theme-handler})
+                                {:theme-handler   :theme-handler
+                                 :auth-handler    :auth-handler
+                                 :article-handler :article-handler
+                                 :comment-handler :comment-handler})
 
-   :theme-handler (component/using theme-handler
-                                   {:next :auth-handler})
+   :theme-handler theme-handler
 
    :auth-datastore auth-datastore
    :auth-handler (component/using auth-handler
-                                  {:db :auth-datastore
-                                   :next :article-handler})
+                                  {:db :auth-datastore})
 
    :escape-html-plugin escape-html-plugin
-   :dropbox-plugin dropbox-plugin
-   :smiley-plugin smiley-plugin
-   :google-map-plugin google-map-plugin
-   :markdown-plugin markdown-plugin
+   :dropbox-plugin     dropbox-plugin
+   :smiley-plugin      smiley-plugin
+   :google-map-plugin  google-map-plugin
+   :markdown-plugin    markdown-plugin
 
    :article-datastore article-datastore
    :article-handler (component/using article-handler
                                      {:db :article-datastore
-                                      :dropbox-plugin :dropbox-plugin
-                                      :smiley-plugin :smiley-plugin
+                                      :dropbox-plugin    :dropbox-plugin
+                                      :smiley-plugin     :smiley-plugin
                                       :google-map-plugin :google-map-plugin
-                                      :markdown-plugin :markdown-plugin
-                                      :next :comment-handler})
+                                      :markdown-plugin   :markdown-plugin})
 
    :comment-datastore comment-datastore
    :comment-handler (component/using comment-handler
                                      {:db :comment-datastore
                                       :escape-html-plugin :escape-html-plugin
-                                      :smiley-plugin :smiley-plugin
-                                      :markdown-plugin :markdown-plugin})))
+                                      :smiley-plugin      :smiley-plugin
+                                      :markdown-plugin    :markdown-plugin})))
 
 
 ; main

@@ -12,6 +12,16 @@
             [clojure.string :as str]))
 
 
+; debug-tracer
+
+(defn wrap-tracer [handler name]
+  (fn [req]
+    (println "tracer-req" name req)
+    (let [resp (handler req)]
+      (println "tracer-resp" name resp)
+      resp)))
+
+
 ; redirect http requests to https
 ; adapted from: https://github.com/ring-clojure/ring-ssl/blob/master/src/ring/middleware/ssl.clj
 
@@ -100,9 +110,9 @@
 
 (defn wrap-extended-request [handler]
   (fn [req]
-    (let [extended-req (assoc req :resp {:data nil :template nil})
-          extended-resp (handler extended-req)]
-      (:resp extended-resp))))
+    (-> req
+        (assoc :resp {:data nil :template nil})
+        handler)))
 
 
 ; anti-forgery, handles CSRF Tokens
@@ -126,32 +136,31 @@
   (and status
        (<= 300 status 399)))
 
-(defn flash-response [{resp :resp :as req}]
-  (if (redirect? resp)
+(defn flash-response [resp]
+  (if-not (redirect? resp)
+    resp
     (if-let [flash (get-in resp [:data :flash])]
-      (assoc-in req [:resp :flash] flash)
-      req)
-    req))
+      (assoc resp :flash flash)
+      resp)))
 
 (defn wrap-flash-data [handler]
   (fn [req]
-    (let [f-req (flash-request req)
-          h-req (handler f-req)]
-      (flash-response h-req))))
-
-
-; component middleware
-
-(defn wrap-handler-component [handler]
-  (fn [req]
-    (handle handler req)))
+    (-> req
+        flash-request
+        handler
+        flash-response)))
 
 
 ; webserver definition
 
+(defn wrap-component-middleware [{handler-keys :handlers :as this}]
+  (let [handlers (map #(% this) handler-keys)
+        last-handler :resp
+        wrap-next (fn [accu handler] (wrap-handler handler accu))]
+    (reduce wrap-next last-handler (reverse handlers))))
+
 (defn wrap-normal-middleware [handler {csp :csp ssl :ssl}]
   (-> handler
-      (wrap-handler-component)
       (wrap-flash-data)
       (wrap-anti-forgery-data)
       (wrap-extended-request)
@@ -175,15 +184,15 @@
             (ssl/wrap-forwarded-scheme h)
             h))))
 
-(defn make-handler [handler this]
-  (-> handler
+(defn make-handler [this]
+  (-> (wrap-component-middleware this)
       (wrap-normal-middleware this)
       (wrap-ssl-middleware this)))
 
-(defn start-impl [{old-server :server next :next port :port ssl :ssl :as this}]
+(defn start [{old-server :server port :port ssl :ssl :as this}]
   (if old-server
     this
-    (let [handler (make-handler next this)
+    (let [handler (make-handler this)
           options (merge {:port (or port 80)
                           :join? false}
                          (if (and ssl (not (:via-reverse-proxy? ssl)))
@@ -193,7 +202,7 @@
       (assoc this :server server))))
 
 
-(defn stop-impl [{server :server :as this}]
+(defn stop [{server :server :as this}]
   (if server
     (do
       (.stop server)

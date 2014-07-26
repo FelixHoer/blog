@@ -1,6 +1,6 @@
 (ns blog.auth.auth-file-datastore
-  (:use [blog.auth.auth-datastore :as spec]
-        [blog.auth.auth-file-datastore-impl :as impl]]))
+  (:require [blog.auth.auth-datastore :as spec]
+            [blog.auth.auth-file-datastore-impl :as impl]))
 
 (defrecord AuthFileDatastore [path]
   spec/AuthDatastore

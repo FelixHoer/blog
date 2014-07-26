@@ -8,4 +8,4 @@
     (last vals)))
 
 (defprotocol Handler
-  (handle [this m]))
+  (wrap-handler [this next-handler]))

@@ -1,10 +1,10 @@
 (ns blog.article.article-handler-impl
   (:use compojure.core
-        blog.handler
         [blog.article.article-datastore :only [article-page article-month-page article]]
         [blog.article.helpers :only [pagination-urls]]
         [blog.text-plugin.plugin :only [apply-plugins]])
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+            [blog.handler :as handler]))
 
 
 ; plugins
@@ -68,16 +68,11 @@
 
 ; component
 
-(defn start-impl [this]
-  this)
-
-(defn stop-impl [this]
-  this)
-
-(defn handle-impl [{next :next :as this} req]
+(defn handle [this next-handler req]
   (let [extended-req (assoc req :component this)
         resp (content-routes extended-req)
-        next-req (update-in req [:resp] deep-merge resp)]
-    (if next
-      (handle next next-req)
-      next-req)))
+        next-req (update-in req [:resp] handler/deep-merge resp)]
+    (next-handler next-req)))
+
+(defn wrap-handler [this next-handler]
+  #(handle this next-handler %))

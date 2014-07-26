@@ -1,9 +1,9 @@
 (ns blog.auth.auth-handler-impl
   (:use compojure.core
-        blog.handler
         blog.auth.auth-datastore)
   (:require [ring.util.response :as ring-response]
-            [compojure.route :as route]))
+            [compojure.route :as route]
+            [blog.handler :as handler]))
 
 ; constants
 
@@ -38,18 +38,18 @@
   (let [username (get form-params "username")
         password (get form-params "password")]
     (if-let [user (authenticate (:db component) username password)]
-      (deep-merge (local-redirect req "/")
-                  {:session {:logged-in true
-                             :user user}
-                   :data {:flash {:info LOGIN_SUCCESS_MSG}}})
+      (handler/deep-merge (local-redirect req "/")
+                          {:session {:logged-in true
+                                     :user user}
+                           :data {:flash {:info LOGIN_SUCCESS_MSG}}})
 
       {:template :login
        :data {:flash {:warning LOGIN_FAIL_MSG}}})))
 
 (defn process-logout [req]
-  (deep-merge (local-redirect req "/")
-              {:session nil
-               :data {:flash {:info LOGOUT_SUCCESS_MSG}}}))
+  (handler/deep-merge (local-redirect req "/")
+                      {:session nil
+                       :data {:flash {:info LOGOUT_SUCCESS_MSG}}}))
 
 (defn enforce-auth [req]
   (local-redirect req "/login"))
@@ -69,18 +69,13 @@
 
 ; component
 
-(defn start-impl [this]
-  this)
-
-(defn stop-impl [this]
-  this)
-
-(defn handle-impl [{next :next :as this} {session :session :as req}]
+(defn handle [this next-handler {session :session resp :resp :as req}]
   (let [extended-req (assoc req :component this)]
     (if-let [auth-resp (auth-routes extended-req)]
-      (update-in req [:resp] deep-merge auth-resp)
+      (handler/deep-merge resp auth-resp)
       (if-not (is-logged-in? session)
-        (update-in req [:resp] deep-merge (enforce-auth extended-req))
-        (if next
-          (handle next req)
-          req)))))
+        (handler/deep-merge resp (enforce-auth extended-req))
+        (next-handler req)))))
+
+(defn wrap-handler [this next-handler]
+  #(handle this next-handler %))
