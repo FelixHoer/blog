@@ -1,7 +1,8 @@
 (ns blog.text-plugin.smiley
-  (:use blog.text-plugin.plugin
-        [blog.text-plugin.smiley-impl :only [process-impl]]))
+  (:require [blog.text-plugin.plugin :as spec]
+            [blog.text-plugin.smiley-impl :as impl]))
 
 (defrecord SmileyPlugin []
-  Plugin
-    (process [this content] ((var process-impl) this content)))
+  spec/Plugin
+    (process [this content]
+      (impl/process this content)))

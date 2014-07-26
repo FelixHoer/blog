@@ -1,37 +1,39 @@
 (ns blog.core
-  (:use blog.auth.auth-handler
-        blog.auth.auth-file-datastore
-        blog.auth.auth-sql-datastore
-        blog.article.article-handler
-        blog.article.article-file-datastore
-        blog.article.article-sql-datastore
-        blog.comment.comment-handler
-        blog.comment.comment-sql-datastore
-        blog.theme.theme-handler
-        blog.web-server.web-server
-        blog.text-plugin.escape-html
-        blog.text-plugin.dropbox
-        blog.text-plugin.smiley
-        blog.text-plugin.google-map
-        blog.text-plugin.markdown)
   (:require [com.stuartsierra.component :as component]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            ;; auth
+            [blog.auth.auth-handler              :refer [map->AuthHandler]]
+            [blog.auth.auth-file-datastore       :refer [map->AuthFileDatastore]]
+            [blog.auth.auth-sql-datastore        :refer [map->AuthSQLDatastore]]
+            ;; article
+            [blog.article.article-handler        :refer [map->ArticleHandler]]
+            [blog.article.article-file-datastore :refer [map->ArticleFileDatastore]]
+            [blog.article.article-sql-datastore  :refer [map->ArticleSQLDatastore]]
+            ;; comment
+            [blog.comment.comment-handler        :refer [map->CommentHandler]]
+            [blog.comment.comment-sql-datastore  :refer [map->CommentSQLDatastore]]
+            ;; theme
+            [blog.theme.theme-handler            :refer [map->ThemeHandler]]
+            ;; web server
+            [blog.web-server.web-server          :refer [map->WebServer]]
+            ;; plugins
+            [blog.text-plugin.escape-html        :refer [map->EscapeHTMLPlugin]]
+            [blog.text-plugin.dropbox            :refer [map->DropboxPlugin]]
+            [blog.text-plugin.smiley             :refer [map->SmileyPlugin]]
+            [blog.text-plugin.google-map         :refer [map->GoogleMapPlugin]]
+            [blog.text-plugin.markdown           :refer [map->MarkdownPlugin]]))
 
 
-; plugins
+;;; plugins
 
-(def dropbox-plugin (map->DropboxPlugin {:user-id "DROPBOX_USER_ID"}))
-
-(def smiley-plugin (map->SmileyPlugin {}))
-
-(def google-map-plugin (map->GoogleMapPlugin {:app-key "GOOGLE_MAP_APP_KEY"}))
-
-(def markdown-plugin (map->MarkdownPlugin {}))
-
+(def dropbox-plugin     (map->DropboxPlugin {:user-id "DROPBOX_USER_ID"}))
+(def smiley-plugin      (map->SmileyPlugin {}))
+(def google-map-plugin  (map->GoogleMapPlugin {:app-key "GOOGLE_MAP_APP_KEY"}))
+(def markdown-plugin    (map->MarkdownPlugin {}))
 (def escape-html-plugin (map->EscapeHTMLPlugin {:preserve-ampersand? true}))
 
 
-; components
+;;; components
 
 (def CSP {:default-src ["'self'"]
           :img-src     ["*"]
@@ -104,7 +106,7 @@
                                                      :markdown-plugin]}))
 
 
-; system
+;;; system
 
 (def system
   (component/system-map
@@ -142,15 +144,21 @@
                                       :markdown-plugin    :markdown-plugin})))
 
 
-; main
+;;; main
 
-(defn -main []
-  (component/start system))
-
-(defn restart []
-  (alter-var-root #'system component/stop)
+(defn start []
   (alter-var-root #'system component/start))
 
-;(alter-var-root #'system component/start)
-;(alter-var-root #'system component/stop)
+(defn stop []
+  (alter-var-root #'system component/stop))
+
+(defn restart []
+  (stop)
+  (start))
+
+(defn -main []
+  (start))
+
+;(start)
+;(stop)
 ;(restart)

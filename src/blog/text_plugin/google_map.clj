@@ -1,7 +1,8 @@
 (ns blog.text-plugin.google-map
-  (:use blog.text-plugin.plugin
-        [blog.text-plugin.google-map-impl :only [process-impl]]))
+  (:require [blog.text-plugin.plugin :as spec]
+            [blog.text-plugin.google-map-impl :as impl]))
 
 (defrecord GoogleMapPlugin [app-key]
-  Plugin
-    (process [this content] ((var process-impl) this content)))
+  spec/Plugin
+    (process [this content]
+      (impl/process this content)))

@@ -1,13 +1,12 @@
 (ns blog.article.article-file-datastore
-  (:use blog.article.article-datastore
-        [blog.article.article-file-datastore-impl
-         :only [article-impl article-page-impl article-month-page-impl]]))
+  (:require [blog.article.article-datastore :as spec]
+            [blog.article.article-file-datastore-impl :as impl]))
 
 (defrecord ArticleFileDatastore []
-  ArticleDatastore
+  spec/ArticleDatastore
     (article [this code]
-      ((var article-impl) this code))
+      (impl/article this code))
     (article-page [this page-num]
-      ((var article-page-impl) this page-num))
+      (impl/article-page this page-num))
     (article-month-page [this month page-num]
-      ((var article-month-page-impl) this month page-num)))
+      (impl/article-month-page this month page-num)))

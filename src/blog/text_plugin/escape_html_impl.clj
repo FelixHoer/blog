@@ -6,7 +6,7 @@
           content
           (remove nil? replacements)))
 
-(defn process-impl [{amp? :preserve-ampersand?} content]
+(defn process [{amp? :preserve-ampersand?} content]
   (replace-all content [(if-not amp? ["&" "&amp;"])
                         ["\"" "&quot;"]
                         ["<" "&lt;"]

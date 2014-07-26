@@ -1,7 +1,7 @@
 (ns blog.theme.theme-handler-impl
-  (:use [blog.theme.template :only [templates]]
-        [compojure.core :only [routes]])
-  (:require [compojure.route :as route]))
+  (:require [compojure.core :refer [routes]]
+            [compojure.route :as route]
+            [blog.theme.template :as t]))
 
 
 ;;; constants
@@ -17,7 +17,7 @@
 
 (defn setup-templates [template-resource-path]
   (into {}
-        (map (fn [[k ts]] [k (templates template-resource-path ts)])
+        (map (fn [[k ts]] [k (t/templates template-resource-path ts)])
              TEMPLATES)))
 
 (defn setup-static-routes [static-resource-path]
@@ -51,7 +51,7 @@
      (merge resp {:status 404
                   :body ((:404 templates) {})})))
 
-(defn handle [this next-handler req]
+(defn handle [{templates :templates :as this} next-handler req]
   (if-let [static (static-response this req)]
     static
     (let [resp (next-handler req)]

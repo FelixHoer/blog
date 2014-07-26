@@ -3,8 +3,12 @@
             [blog.handler :as handler]
             [blog.theme.theme-handler-impl :as impl]))
 
-(defrecord ThemeHandler [template-resource-path static-resource-path ; config
-                         templates static-routes] ; local data
+(defrecord ThemeHandler [;; config
+                         template-resource-path
+                         static-resource-path
+                         ;; local data
+                         templates
+                         static-routes]
   component/Lifecycle
     (start [this]
       (impl/start this))

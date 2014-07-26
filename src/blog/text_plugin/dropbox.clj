@@ -1,7 +1,8 @@
 (ns blog.text-plugin.dropbox
-  (:use blog.text-plugin.plugin
-        [blog.text-plugin.dropbox-impl :only [process-impl]]))
+  (:require [blog.text-plugin.plugin :as spec]
+            [blog.text-plugin.dropbox-impl :as impl]))
 
 (defrecord DropboxPlugin [user-id]
-  Plugin
-    (process [this content] ((var process-impl) this content)))
+  spec/Plugin
+    (process [this content]
+      (impl/process this content)))

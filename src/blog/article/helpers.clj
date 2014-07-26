@@ -2,12 +2,12 @@
   (:require [clojure.string :as string]))
 
 
-; constants
+;;; constants
 
 (def MONTH_NAMES (.getMonths (java.text.DateFormatSymbols.)))
 
 
-; helpers
+;;; helpers
 
 (defn month-name [str-index]
   (get MONTH_NAMES (dec (Integer/parseInt str-index))))
@@ -26,7 +26,7 @@
             :code code})))
 
 
-; pagination
+;;; pagination
 
 (defn paginate [page-num items-per-page coll]
   (let [pages (partition-all items-per-page coll)

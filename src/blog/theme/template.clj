@@ -2,7 +2,7 @@
   (:require [clostache.parser :as clostache]))
 
 
-; templates
+;;; templates
 
 (defn template-path [base-path sub-path]
   (str base-path "/" sub-path ".mustache"))

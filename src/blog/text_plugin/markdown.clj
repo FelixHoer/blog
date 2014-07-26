@@ -1,7 +1,8 @@
 (ns blog.text-plugin.markdown
-  (:use blog.text-plugin.plugin
-        [blog.text-plugin.markdown-impl :only [process-impl]]))
+  (:require [blog.text-plugin.plugin :as spec]
+            [blog.text-plugin.markdown-impl :as impl]))
 
 (defrecord MarkdownPlugin []
-  Plugin
-    (process [this content] ((var process-impl) this content)))
+  spec/Plugin
+    (process [this content]
+      (impl/process this content)))

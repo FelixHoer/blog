@@ -20,5 +20,5 @@
 (defn apply-smiley [content [regex image]]
   (string/replace content regex (smiley-tag image)))
 
-(defn process-impl [this content]
+(defn process [this content]
   (reduce apply-smiley content SMILEYS))

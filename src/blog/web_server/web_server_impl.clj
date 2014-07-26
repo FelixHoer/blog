@@ -1,5 +1,4 @@
 (ns blog.web-server.web-server-impl
-  (:use blog.handler)
   (:require [ring.middleware.session :as session]
             [ring.middleware.params :as params]
             [ring.middleware.flash :as flash]
@@ -9,10 +8,11 @@
             [ring.util.response :as resp]
             [ring.util.request :as req]
             [ring.adapter.jetty :as jetty]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [blog.handler :as h]))
 
 
-; debug-tracer
+;;; debug-tracer
 
 (defn wrap-tracer [handler name]
   (fn [req]
@@ -22,7 +22,7 @@
       resp)))
 
 
-; redirect http requests to https
+;;; redirect http requests to https
 ; adapted from: https://github.com/ring-clojure/ring-ssl/blob/master/src/ring/middleware/ssl.clj
 
 (defn- get-request? [{method :request-method}]
@@ -60,7 +60,7 @@
           (resp/status   (if (get-request? request) 301 307))))))
 
 
-; prevent framing (clickjacking)
+;;; prevent framing (clickjacking)
 
 (defn wrap-anti-framing [handler]
   (fn [req]
@@ -68,7 +68,7 @@
       (assoc-in resp [:headers "X-Frame-Options"] "DENY"))))
 
 
-; prevent content type sniffing
+;;; prevent content type sniffing
 
 (defn wrap-anti-content-type-sniffing [handler]
   (fn [req]
@@ -76,7 +76,7 @@
       (assoc-in resp [:headers "X-Content-Type-Options"] "nosniff"))))
 
 
-; define a content security polics
+;;; define a content security polics
 
 (defn build-csp [csp]
   (->> csp
@@ -91,7 +91,7 @@
         (assoc-in resp [:headers "Content-Security-Policy"] (build-csp csp))))))
 
 
-; content-type and charset middleware
+;;; content-type and charset middleware
 
 (defn has-no-extension [{uri :uri}]
   (empty? (re-find #"\.[A-Za-z0-9]+$" uri)))
@@ -106,7 +106,7 @@
         resp))))
 
 
-; extended request middleware
+;;; extended request middleware
 
 (defn wrap-extended-request [handler]
   (fn [req]
@@ -115,17 +115,18 @@
         handler)))
 
 
-; anti-forgery, handles CSRF Tokens
+;;; anti-forgery, handles CSRF Tokens
 
 (defn assoc-CSRF-field [req]
   (assoc-in req [:resp :data :CSRF-field] (forgery-util/anti-forgery-field)))
 
-(defn wrap-anti-forgery-data [handler]
-  (fn [req]
-    (handler (assoc-CSRF-field req))))
+(defn wrap-anti-forgery [handler]
+  (forgery/wrap-anti-forgery
+   (fn [req]
+     (handler (assoc-CSRF-field req)))))
 
 
-; flash middleware
+;;; flash middleware
 
 (defn flash-request [{flash :flash :as req}]
   (if flash
@@ -143,30 +144,29 @@
       (assoc resp :flash flash)
       resp)))
 
-(defn wrap-flash-data [handler]
-  (fn [req]
-    (-> req
-        flash-request
-        handler
-        flash-response)))
+(defn wrap-flash [handler]
+  (flash/wrap-flash
+   (fn [req]
+     (-> req
+         flash-request
+         handler
+         flash-response))))
 
 
-; webserver definition
+;;; middleware composition
 
 (defn wrap-component-middleware [{handler-keys :handlers :as this}]
   (let [handlers (map #(% this) handler-keys)
         last-handler :resp
-        wrap-next (fn [accu handler] (wrap-handler handler accu))]
+        wrap-next (fn [accu handler] (h/wrap-handler handler accu))]
     (reduce wrap-next last-handler (reverse handlers))))
 
 (defn wrap-normal-middleware [handler {csp :csp ssl :ssl}]
   (-> handler
-      (wrap-flash-data)
-      (wrap-anti-forgery-data)
+      (wrap-flash)
+      (wrap-anti-forgery)
       (wrap-extended-request)
       (wrap-content-type)
-      (flash/wrap-flash)
-      (forgery/wrap-anti-forgery)
       (session/wrap-session {:cookie-attrs {:secure (boolean ssl)
                                             :http-only true}})
       (params/wrap-params)
@@ -188,6 +188,9 @@
   (-> (wrap-component-middleware this)
       (wrap-normal-middleware this)
       (wrap-ssl-middleware this)))
+
+
+;;; lifecycle methods, start/stop
 
 (defn start [{old-server :server port :port ssl :ssl :as this}]
   (if old-server

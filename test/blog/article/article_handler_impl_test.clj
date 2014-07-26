@@ -1,13 +1,13 @@
 (ns blog.article.article-handler-impl-test
-  (:use blog.text-plugin.plugin
-        blog.article.article-datastore)
   (:require [clojure.test :refer :all]
-            [blog.article.article-handler-impl :refer :all]))
+            [blog.text-plugin.plugin :as p]
+            [blog.article.article-datastore :as ds]
+            [blog.article.article-handler-impl :as impl]))
 
 ; test plugins
 
 (defrecord AddIdPlugin [id]
-  Plugin
+  p/Plugin
     (process [this content] (str content id)))
 
 (def plugin-1 (map->AddIdPlugin {:id 1}))
@@ -21,25 +21,25 @@
 
 (deftest plugins
   (testing "plugin-seq"
-    (is (= (plugin-seq plugins-component)
+    (is (= (impl/plugin-seq plugins-component)
            [plugin-1 plugin-2 plugin-3])))
 
   (testing "apply-plugins"
-    (is (= (apply-plugins "abc" [plugin-1 plugin-2 plugin-3])
+    (is (= (p/apply-plugins "abc" [plugin-1 plugin-2 plugin-3])
            "abc123")))
 
   (testing "apply-plugins-page"
-    (is (= (apply-plugins-page plugins-component
-                               {:items [{:body "abc"}
-                                        {:body "def"}
-                                        {:body "ghi"}]})
+    (is (= (impl/apply-plugins-page plugins-component
+                                    {:items [{:body "abc"}
+                                             {:body "def"}
+                                             {:body "ghi"}]})
            {:items [{:body "abc123"}
                     {:body "def123"}
                     {:body "ghi123"}]}))))
 
 
 (defrecord MockArticleDB []
-  ArticleDatastore
+  ds/ArticleDatastore
     (article [this code]
       (if (= "some-code" code)
         {:items [{:body "abc"}]
@@ -67,7 +67,7 @@
 
 (deftest endpoints
   (testing "list-articles-page"
-    (is (= (list-articles-page endpoints-component 0)
+    (is (= (impl/list-articles-page endpoints-component 0)
            {:data {:current-page 0,
                    :next-page "/articles/page/1",
                    :items '({:body "abc123"} {:body "def123"})
@@ -76,7 +76,7 @@
             :template :article-list})))
 
   (testing "list-articles-month-page"
-    (is (= (list-articles-month-page endpoints-component "2014-04" 0)
+    (is (= (impl/list-articles-month-page endpoints-component "2014-04" 0)
            {:data {:current-page 0,
                    :next-page "/articles/month/2014-04/page/1",
                    :items '({:body "def123"} {:body "ghi123"})
@@ -85,7 +85,7 @@
             :template :article-list})))
 
   (testing "show-article"
-    (is (= (show-article endpoints-component "some-code")
+    (is (= (impl/show-article endpoints-component "some-code")
            {:data {:items '({:body "abc123"}),
                    :recent-articles "recent-articles",
                    :archive-months "archive-months"},

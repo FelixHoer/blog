@@ -1,24 +1,24 @@
 (ns blog.auth.auth-handler-impl
-  (:use compojure.core
-        blog.auth.auth-datastore)
-  (:require [ring.util.response :as ring-response]
+  (:require [ring.util.response :as ring]
             [compojure.route :as route]
-            [blog.handler :as handler]))
+            [blog.handler :as handler]
+            [blog.auth.auth-datastore :as ds]
+            [compojure.core :refer [defroutes GET POST]]))
 
-; constants
+;;; constants
 
 (def LOGIN_SUCCESS_MSG "You logged in successfully!")
 (def LOGIN_FAIL_MSG "Username and/or Password was incorrect!")
 (def LOGOUT_SUCCESS_MSG "You logged out successfully!")
 
 
-; helpers
+;;; helpers
 
 (defn local-redirect [{scheme :scheme server :server-name port :server-port} path]
-  (ring-response/redirect (str (name scheme) "://"
-                               server
-                               (if (seq (str port)) (str ":" port))
-                               path)))
+  (ring/redirect (str (name scheme) "://"
+                      server
+                      (if (seq (str port)) (str ":" port))
+                      path)))
 
 (defn is-logged-in? [session]
   (:logged-in session))
@@ -29,7 +29,7 @@
           (get-in session [:user :role]))))
 
 
-; server endpoints
+;;; server endpoints
 
 (defn login [req]
   {:template :login})
@@ -37,7 +37,7 @@
 (defn process-login [{:keys [session form-params component resp] :as req}]
   (let [username (get form-params "username")
         password (get form-params "password")]
-    (if-let [user (authenticate (:db component) username password)]
+    (if-let [user (ds/authenticate (:db component) username password)]
       (handler/deep-merge (local-redirect req "/")
                           {:session {:logged-in true
                                      :user user}
@@ -55,19 +55,18 @@
   (local-redirect req "/login"))
 
 
-; routes
+;;; routes
 
-(def auth-routes
-  (routes
-    (GET "/login" req
-      (login req))
-    (POST "/login" req
-      (process-login req))
-    (POST "/logout" req
-      (process-logout req))))
+(defroutes auth-routes
+  (GET "/login" req
+    (login req))
+  (POST "/login" req
+    (process-login req))
+  (POST "/logout" req
+    (process-logout req)))
 
 
-; component
+;;; component
 
 (defn handle [this next-handler {session :session resp :resp :as req}]
   (let [extended-req (assoc req :component this)]

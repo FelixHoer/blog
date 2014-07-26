@@ -4,7 +4,7 @@
             [markdown.core :as markdown]))
 
 
-; constants
+;;; constants
 
 (def DATE_PREFIX_LENGTH 7)
 
@@ -12,7 +12,7 @@
 (def EXTENSION_LENGTH (count EXTENSION))
 
 
-; helper
+;;; helper
 
 (defn group-by-month [files]
   (let [date-prefix-f #(string/join (take DATE_PREFIX_LENGTH %))
@@ -28,7 +28,7 @@
 (def parse-article-filename (comp parse-article-code filename->code))
 
 
-; list of article names
+;;; list of article names
 
 (defn article-files [{article-path :article-path}]
   (let [root (clojure.java.io/file article-path)
@@ -36,7 +36,7 @@
     (map #(.getName %) files)))
 
 
-; content of an article
+;;; content of an article
 
 (defn article-data [{article-path :article-path} name]
   (let [safe-name (string/join (remove #(= \/ %) name))
@@ -46,7 +46,7 @@
            {:body file-content})))
 
 
-; paginated main list
+;;; paginated main list
 
 (defn article-page-data [db page-num article-files]
   (let [sorted-files (reverse (sort article-files))
@@ -59,7 +59,7 @@
     (article-page-data db page-num month-files)))
 
 
-; sidebar
+;;; sidebar
 
 (defn sidebar-recent-article-data [{recent-articles :recent-articles} article-files]
   (let [sorted-files (reverse (sort article-files))
@@ -76,9 +76,9 @@
    :archive-months (sidebar-archive-data db article-files)})
 
 
-; component
+;;; component
 
-(defn article-impl [this code]
+(defn article [this code]
   (let [files (article-files this)
         articles (try
                    [(article-data this (code->filename code))]
@@ -87,12 +87,12 @@
     (merge {:items articles}
            (sidebar-data this files))))
 
-(defn article-page-impl [this page-num]
+(defn article-page [this page-num]
   (let [files (article-files this)]
     (merge (article-page-data this page-num files)
            (sidebar-data this files))))
 
-(defn article-month-page-impl [this month page-num]
+(defn article-month-page [this month page-num]
   (let [files (article-files this)]
     (merge (article-month-page-data this month page-num files)
            (sidebar-data this files))))

@@ -1,15 +1,18 @@
 (ns blog.comment.comment-handler-impl
-  (:use compojure.core)
   (:require [blog.auth.auth-handler-impl :as helper]
             [blog.comment.comment-datastore :as cdb]
             [blog.handler :as handler]
             [clojure.string :as string]
-            [blog.text-plugin.plugin :as plugin]))
+            [blog.text-plugin.plugin :as plugin]
+            [compojure.core :refer [defroutes GET POST]]))
 
+
+;;; constants
 
 (def SAVE_ERROR_MSG "Could not save comment, because: ")
 
-; helpers
+
+;;; helpers
 
 (defn now []
   (java.util.Date.))
@@ -31,7 +34,7 @@
     (map transform-body comments)))
 
 
-; server endpoints
+;;; server endpoints
 
 (defn save-comment [{db :db} article-code req]
   (let [comment (cdb/map->Comment {:name (comment-name req)
@@ -59,7 +62,7 @@
     (assoc-in resp [:data :items] [extended-article])))
 
 
-; routes
+;;; routes
 
 (defroutes comment-routes
 
@@ -73,7 +76,7 @@
       nil)))
 
 
-; component
+;;; component
 
 (defn handle [this next-handler req]
   (let [extended-req (assoc req :component this)

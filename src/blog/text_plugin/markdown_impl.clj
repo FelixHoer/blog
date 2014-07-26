@@ -1,5 +1,5 @@
 (ns blog.text-plugin.markdown-impl
   (:require [markdown.core :as markdown]))
 
-(defn process-impl [this content]
+(defn process [this content]
   (markdown/md-to-html-string content))

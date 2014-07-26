@@ -1,44 +1,44 @@
 (ns blog.article.article-handler-impl
-  (:use compojure.core
-        [blog.article.article-datastore :only [article-page article-month-page article]]
-        [blog.article.helpers :only [pagination-urls]]
-        [blog.text-plugin.plugin :only [apply-plugins]])
-  (:require [clojure.string :as string]
-            [blog.handler :as handler]))
+  (:require [compojure.core :refer [defroutes GET]]
+            [clojure.string :as string]
+            [blog.handler :as handler]
+            [blog.text-plugin.plugin :as plugin]
+            [blog.article.article-datastore :as ds]
+            [blog.article.helpers :as helper]))
 
 
-; plugins
+;;; plugins
 
 (defn plugin-seq [component]
   (map #(% component) (:plugins component)))
 
 (defn apply-plugins-page [component page]
   (let [plugins (plugin-seq component)
-        transform-body #(update-in % [:body] apply-plugins plugins)]
+        transform-body #(update-in % [:body] plugin/apply-plugins plugins)]
     (update-in page [:items] #(map transform-body %))))
 
 
-; server endpoints
+;;; server endpoints
 
 (defn list-articles-page [{db :db :as component} page-num]
-  (let [page (article-page db page-num)]
+  (let [page (ds/article-page db page-num)]
     {:data (merge (apply-plugins-page component page)
-                  (pagination-urls #(str "/articles/page/" %) page))
+                  (helper/pagination-urls #(str "/articles/page/" %) page))
      :template :article-list}))
 
 (defn list-articles-month-page [{db :db :as component} month page-num]
-  (let [page (article-month-page db month page-num)]
+  (let [page (ds/article-month-page db month page-num)]
     {:data (merge (apply-plugins-page component page)
-                  (pagination-urls #(str "/articles/month/" month "/page/" %) page))
+                  (helper/pagination-urls #(str "/articles/month/" month "/page/" %) page))
      :template :article-list}))
 
 (defn show-article [{db :db :as component} code]
-  (let [page (article db code)]
+  (let [page (ds/article db code)]
     {:data (apply-plugins-page component page)
      :template :article}))
 
 
-; routes
+;;; routes
 
 (defroutes content-routes
   ; all articles
@@ -66,7 +66,7 @@
     (show-article component code)))
 
 
-; component
+;;; component
 
 (defn handle [this next-handler req]
   (let [extended-req (assoc req :component this)
