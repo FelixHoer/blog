@@ -2,26 +2,27 @@
   (:require [com.stuartsierra.component :as component]
             [clojure.string :as string]
             ;; auth
-            [blog.auth.auth-handler              :refer [map->AuthHandler]]
-            [blog.auth.auth-file-datastore       :refer [map->AuthFileDatastore]]
-            [blog.auth.auth-sql-datastore        :refer [map->AuthSQLDatastore]]
+            [blog.auth.auth-handler                  :refer [map->AuthHandler]]
+            [blog.auth.auth-file-datastore           :refer [map->AuthFileDatastore]]
+            [blog.auth.auth-sql-datastore            :refer [map->AuthSQLDatastore]]
             ;; article
-            [blog.article.article-handler        :refer [map->ArticleHandler]]
-            [blog.article.article-file-datastore :refer [map->ArticleFileDatastore]]
-            [blog.article.article-sql-datastore  :refer [map->ArticleSQLDatastore]]
+            [blog.article.article-handler            :refer [map->ArticleHandler]]
+            [blog.article.article-file-datastore     :refer [map->ArticleFileDatastore]]
+            [blog.article.article-sql-datastore      :refer [map->ArticleSQLDatastore]]
             ;; comment
-            [blog.comment.comment-handler        :refer [map->CommentHandler]]
-            [blog.comment.comment-sql-datastore  :refer [map->CommentSQLDatastore]]
+            [blog.comment.comment-handler            :refer [map->CommentHandler]]
+            [blog.comment.comment-management-handler :refer [map->CommentManagementHandler]]
+            [blog.comment.comment-sql-datastore      :refer [map->CommentSQLDatastore]]
             ;; theme
-            [blog.theme.theme-handler            :refer [map->ThemeHandler]]
+            [blog.theme.theme-handler                :refer [map->ThemeHandler]]
             ;; web server
-            [blog.web-server.web-server          :refer [map->WebServer]]
+            [blog.web-server.web-server              :refer [map->WebServer]]
             ;; plugins
-            [blog.text-plugin.escape-html        :refer [map->EscapeHTMLPlugin]]
-            [blog.text-plugin.dropbox            :refer [map->DropboxPlugin]]
-            [blog.text-plugin.smiley             :refer [map->SmileyPlugin]]
-            [blog.text-plugin.google-map         :refer [map->GoogleMapPlugin]]
-            [blog.text-plugin.markdown           :refer [map->MarkdownPlugin]]))
+            [blog.text-plugin.escape-html            :refer [map->EscapeHTMLPlugin]]
+            [blog.text-plugin.dropbox                :refer [map->DropboxPlugin]]
+            [blog.text-plugin.smiley                 :refer [map->SmileyPlugin]]
+            [blog.text-plugin.google-map             :refer [map->GoogleMapPlugin]]
+            [blog.text-plugin.markdown               :refer [map->MarkdownPlugin]]))
 
 
 ;;; plugins
@@ -50,7 +51,8 @@
                                  :handlers [:theme-handler
                                             :auth-handler
                                             :article-handler
-                                            :comment-handler]}))
+                                            :comment-handler
+                                            :comment-management-handler]}))
 
 #_(def web-server (map->WebServer {:port 8080
                                    :ssl {:via-reverse-proxy? true}
@@ -104,6 +106,7 @@
 (def comment-handler (map->CommentHandler {:plugins [:escape-html-plugin
                                                      :smiley-plugin
                                                      :markdown-plugin]}))
+(def comment-management-handler (map->CommentManagementHandler {}))
 
 
 ;;; system
@@ -111,10 +114,11 @@
 (def system
   (component/system-map
    :web-server (component/using web-server
-                                {:theme-handler   :theme-handler
-                                 :auth-handler    :auth-handler
-                                 :article-handler :article-handler
-                                 :comment-handler :comment-handler})
+                                {:theme-handler              :theme-handler
+                                 :auth-handler               :auth-handler
+                                 :article-handler            :article-handler
+                                 :comment-handler            :comment-handler
+                                 :comment-management-handler :comment-management-handler})
 
    :theme-handler theme-handler
 
@@ -141,7 +145,9 @@
                                      {:db :comment-datastore
                                       :escape-html-plugin :escape-html-plugin
                                       :smiley-plugin      :smiley-plugin
-                                      :markdown-plugin    :markdown-plugin})))
+                                      :markdown-plugin    :markdown-plugin})
+   :comment-management-handler (component/using comment-management-handler
+                                                {:db :comment-datastore})))
 
 
 ;;; main

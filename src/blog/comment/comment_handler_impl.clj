@@ -69,7 +69,7 @@
   (POST "/comment/:code" {{code :code} :params component :component :as req}
     (save-comment component code req))
 
-  (GET "*" {component :component resp :resp :as req}
+  (GET "*" {component :component resp :resp}
     (case (:template resp)
       :article-list (extend-with-comment-counts component resp)
       :article      (extend-with-comments component resp)
@@ -80,9 +80,9 @@
 
 (defn handle [this next-handler req]
   (let [extended-req (assoc req :component this)
-          resp (comment-routes extended-req)
-          next-req (update-in req [:resp] handler/deep-merge resp)]
-      (next-handler next-req)))
+        resp (comment-routes extended-req)
+        next-req (update-in req [:resp] handler/deep-merge resp)]
+    (next-handler next-req)))
 
 (defn wrap-handler [this next-handler]
   #(handle this next-handler %))

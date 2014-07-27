@@ -36,6 +36,15 @@
           <div>
             <span class="comment-name">{{name}}</span>
             <span class="comment-time">{{time}}</span>
+            {{#session.user}}
+            <form class="comment-actions" method="post" action="/comment/{{code}}/delete">
+              <input type="hidden" name="comment-id" value="{{id}}" />
+              {{{CSRF-field}}}
+              <button type="submit" class="btn btn-link btn-xs">
+                <span class="glyphicon glyphicon-remove"></span>
+              </button>
+            </form>
+            {{/session.user}}
           </div>
           {{{text}}}
         </li>
