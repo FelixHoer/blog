@@ -1,0 +1,27 @@
+{% extends "templates/blog_layout.html" %}
+{% block blog-body %}
+{% for item in items %}
+<div class="row blog-post">
+  <div class="date col-sm-2">
+    <h1>{{item.day}}</h1>
+    <div>{{item.month-name}}</div>
+    <div>{{item.year}}</div>
+  </div>
+  <div class="col-sm-10">
+    {{item.body|safe}}
+    <p>
+      <a href="/articles/{{item.code}}#comments">{{item.comment-count}} comment{{item.comment-count|pluralize}}</a>
+    </p>
+  </div>
+</div><!-- /.blog-post -->
+{% empty %}
+<div class="row">
+  <div class="date col-sm-2"></div>
+  <div class="col-sm-10">
+    <p class="text-center">
+    There are no articles yet.
+    </p>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

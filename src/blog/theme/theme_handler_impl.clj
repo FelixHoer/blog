@@ -1,23 +1,39 @@
 (ns blog.theme.theme-handler-impl
   (:require [compojure.core :refer [routes]]
             [compojure.route :as route]
-            [blog.theme.template :as t]))
+            [selmer.parser :as selmer]
+            [clojure.string :as string]))
 
 
 ;;; constants
 
-(def TEMPLATES {:error        ["layout" "error"]
-                :404          ["layout" "404"]
-                :login        ["layout" "login"]
-                :article-list ["layout" "blog_layout" "article_list"]
-                :article      ["layout" "blog_layout" "article"]})
+(def TEMPLATES [:error
+                :404
+                :login
+                :article-list
+                :article])
+
+;;; templates
+
+(defn keyword->underscore-name [k]
+  (string/replace (name k) \- \_))
+
+(defn keyword->template-path [k template-resource-path]
+  (str template-resource-path "/" (keyword->underscore-name k) ".html"))
+
+(defn create-template
+  ([k res-path]
+   (-> (keyword->template-path k res-path)
+       create-template))
+  ([path]
+   (fn [data] (selmer/render-file path data))))
 
 
 ;;; setup / lifecycle
 
-(defn setup-templates [template-resource-path]
+(defn setup-templates [res-path]
   (into {}
-        (map (fn [[k ts]] [k (t/templates template-resource-path ts)])
+        (map (fn [k] [k (create-template k res-path)])
              TEMPLATES)))
 
 (defn setup-static-routes [static-resource-path]
@@ -54,12 +70,12 @@
 (defn handle [{templates :templates :as this} next-handler req]
   (if-let [static (static-response this req)]
     static
-    (let [resp (next-handler req)]
-      (try
-        (dynamic-response this req resp)
-        (catch Exception e
-          (.printStackTrace e)
-          {:body ((:error templates) {})})))))
+    (try
+      (let [resp (next-handler req)]
+        (dynamic-response this req resp))
+      (catch Exception e
+        (.printStackTrace e)
+        {:body ((:error templates) {})}))))
 
 (defn wrap-handler [this next-handler]
   #(handle this next-handler %))

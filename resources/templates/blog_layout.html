@@ -1,25 +1,26 @@
+{% extends "templates/layout.html" %}
+{% block body %}
 <div class="row">
 
     <div class="col-sm-8 blog-main">
 
-        {{{body}}}
+        {% block blog-body %}
+        {% endblock %}
 
         <div class="row">
             <div class="col-sm-offset-2 col-sm-10">
                 <ul class="pager">
-                    {{#previous-page}}
+                    {% if previous-page %}
                     <li class="previous"><a href="{{previous-page}}">&larr; Newer</a></li>
-                    {{/previous-page}}
-                    {{^previous-page}}
+                    {% else %}
                     <li class="previous disabled"><a href="#">&larr; Newer</a></li>
-                    {{/previous-page}}
+                    {% endif %}
 
-                    {{#next-page}}
+                    {% if next-page %}
                     <li class="next"><a href="{{next-page}}">Older &rarr;</a></li>
-                    {{/next-page}}
-                    {{^next-page}}
+                    {% else %}
                     <li class="next disabled"><a href="#">Older &rarr;</a></li>
-                    {{/next-page}}
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -31,27 +32,26 @@
         <div class="blog-sidebar">
             <h4>Recent Posts</h4>
             <ol class="list-unstyled">
-                {{#recent-articles}}
-                <li><a href="/articles/{{code}}">{{title}}</a></li>
-                {{/recent-articles}}
-                {{^recent-articles}}
+                {% for ra in recent-articles %}
+                <li><a href="/articles/{{ra.code}}">{{ra.title}}</a></li>
+                {% empty %}
                 <li>(none)</li>
-                {{/recent-articles}}
+                {% endfor %}
             </ol>
         </div>
 
         <div class="blog-sidebar">
             <h4>Archives</h4>
             <ol class="list-unstyled">
-                {{#archive-months}}
-                <li><a href="/articles/month/{{code}}">{{month-name}} {{year}}</a></li>
-                {{/archive-months}}
-                {{^archive-months}}
+                {% for am in archive-months %}
+                <li><a href="/articles/month/{{am.code}}">{{am.month-name}} {{am.year}}</a></li>
+                {% empty %}
                 (none)
-                {{/archive-months}}
+                {% endfor %}
             </ol>
         </div>
 
     </div>
 
 </div><!-- /.row -->
+{% endblock %}

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{title}}{{^title}}My Blog{{/title}}</title>
+    <title>My Blog</title>
 
     <!-- Bootstrap -->
     <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
@@ -24,39 +24,40 @@
       <div class="container">
         <a class="navbar-brand" href="/">Title</a>
         <p class="navbar-text">Subtitle</p>
-        {{#session.user}}
+        {% if session.user %}
         <form class="navbar-form navbar-right" action="/logout" method="post">
           <button type="submit" class="btn btn-link">Log out.</button>
-          {{{CSRF-field}}}
+          {{CSRF-field|safe}}
         </form>
         <p class="navbar-text navbar-right">
           Logged in as {{session.user.username}}.
         </p>
-        {{/session.user}}
+        {% endif %}
       </div>
     </nav>
 
     <div class="container">
 
-      {{#flash.error}}
+      {% if flash.error %}
       <div class="alert alert-danger">
         {{flash.error}}
       </div>
-      {{/flash.error}}
+      {% endif %}
 
-      {{#flash.warning}}
+      {% if flash.warning %}
       <div class="alert alert-warning">
         {{flash.warning}}
       </div>
-      {{/flash.warning}}
+      {% endif %}
 
-      {{#flash.info}}
+      {% if flash.info %}
       <div class="alert alert-info">
         {{flash.info}}
       </div>
-      {{/flash.info}}
+      {% endif %}
 
-      {{{body}}}
+      {% block body %}
+      {% endblock %}
 
     </div><!-- /.container -->
 

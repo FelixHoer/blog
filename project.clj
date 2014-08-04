@@ -10,7 +10,7 @@
                  [ring/ring-anti-forgery "1.0.0-RC1"]
                  [ring/ring-ssl "0.2.0"]
                  [compojure "1.1.6"]
-                 [de.ubercode.clostache/clostache "1.3.1"]
+                 [selmer "0.6.9"]
                  [markdown-clj "0.9.41"]
                  [crypto-password "0.1.3"]
                  [org.clojure/java.jdbc "0.3.3"]

@@ -30,7 +30,7 @@
   (POST "/comment/:code/delete" {session :session :as req}
     (if-not (auth/is-logged-in-as? session :admin)
       (auth/enforce-auth req)
-      (delete-comment req)))
+      (delete-comment req))))
 
 
 ;;; component
@@ -38,7 +38,7 @@
 (defn handle [this next-handler req]
   (let [extended-req (assoc req :component this)
         resp (comment-mgmt-routes extended-req)
-        next-req (deep-merge-in req [:resp] resp)]
+        next-req (handler/deep-merge-in req [:resp] resp)]
     (next-handler next-req)))
 
 (defn wrap-handler [this next-handler]
