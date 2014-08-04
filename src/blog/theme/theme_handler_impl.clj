@@ -7,8 +7,8 @@
 
 ;;; constants
 
-(def TEMPLATES [:error
-                :404
+(def TEMPLATES [:404
+                :500
                 :login
                 :article-list
                 :article])
@@ -75,7 +75,8 @@
         (dynamic-response this req resp))
       (catch Exception e
         (.printStackTrace e)
-        {:body ((:error templates) {})}))))
+        {:status 500
+         :body ((:500 templates) {})}))))
 
 (defn wrap-handler [this next-handler]
   #(handle this next-handler %))
