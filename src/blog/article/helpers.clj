@@ -25,6 +25,11 @@
             :title (string/join " " (map string/capitalize title-parts))
             :code code})))
 
+(defn build-article-code [{:keys [year month day title]}]
+  (string/join \- [year month day (-> title
+                                      (string/lower-case)
+                                      (string/replace \space \-))]))
+
 
 ;;; pagination
 

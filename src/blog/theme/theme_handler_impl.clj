@@ -11,7 +11,9 @@
                 :500
                 :login
                 :article-list
-                :article])
+                :article
+                :article-compose
+                :article-edit])
 
 ;;; templates
 

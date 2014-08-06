@@ -46,7 +46,8 @@ h6, .h6 {
 
 @media (max-width: 768px) {
   .blog-main .blog-post .date div,
-  .blog-main .blog-post .date h1 {
+  .blog-main .blog-post .date h1,
+  .blog-main .blog-post .date form {
     display: inline-block;
   }
 }
@@ -56,6 +57,10 @@ h6, .h6 {
     text-align: right;
     color: #aaa;
     line-height: 1.5;
+  }
+  .blog-main .blog-post .date .btn {
+    padding: 0;
+    border: none;
   }
 }
 

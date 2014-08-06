@@ -7,6 +7,7 @@
             [blog.auth.auth-sql-datastore            :refer [map->AuthSQLDatastore]]
             ;; article
             [blog.article.article-handler            :refer [map->ArticleHandler]]
+            [blog.article.article-management-handler :refer [map->ArticleManagementHandler]]
             [blog.article.article-file-datastore     :refer [map->ArticleFileDatastore]]
             [blog.article.article-sql-datastore      :refer [map->ArticleSQLDatastore]]
             ;; comment
@@ -50,9 +51,10 @@
                                  :csp CSP
                                  :handlers [:theme-handler
                                             :auth-handler
+                                            :article-management-handler
                                             :article-handler
-                                            :comment-handler
-                                            :comment-management-handler]}))
+                                            :comment-management-handler
+                                            :comment-handler]}))
 
 #_(def web-server (map->WebServer {:port 8080
                                    :ssl {:via-reverse-proxy? true}
@@ -101,11 +103,14 @@
                                                      :google-map-plugin
                                                      :markdown-plugin]}))
 
+(def article-management-handler (map->ArticleManagementHandler {}))
+
 (def comment-datastore (map->CommentSQLDatastore {:db DB_SPEC}))
 
 (def comment-handler (map->CommentHandler {:plugins [:escape-html-plugin
                                                      :smiley-plugin
                                                      :markdown-plugin]}))
+
 (def comment-management-handler (map->CommentManagementHandler {}))
 
 
@@ -116,9 +121,10 @@
    :web-server (component/using web-server
                                 {:theme-handler              :theme-handler
                                  :auth-handler               :auth-handler
+                                 :article-management-handler :article-management-handler
                                  :article-handler            :article-handler
-                                 :comment-handler            :comment-handler
-                                 :comment-management-handler :comment-management-handler})
+                                 :comment-management-handler :comment-management-handler
+                                 :comment-handler            :comment-handler})
 
    :theme-handler theme-handler
 
@@ -139,6 +145,8 @@
                                       :smiley-plugin     :smiley-plugin
                                       :google-map-plugin :google-map-plugin
                                       :markdown-plugin   :markdown-plugin})
+   :article-management-handler (component/using article-management-handler
+                                                {:db :article-datastore})
 
    :comment-datastore comment-datastore
    :comment-handler (component/using comment-handler
