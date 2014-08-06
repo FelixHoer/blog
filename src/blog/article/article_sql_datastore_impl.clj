@@ -53,7 +53,7 @@
 (defn select-article-page [{:keys [db articles-per-page]} page-num]
   (jdbc/query db [(str "SELECT name, body "
                        "FROM article "
-                       "ORDER BY date "
+                       "ORDER BY date DESC "
                        "LIMIT ? "
                        "OFFSET ?")
                   articles-per-page
@@ -83,7 +83,7 @@
   (jdbc/query db [(str "SELECT name, body "
                        "FROM article "
                        "WHERE MONTH(date) = ? AND YEAR(date) = ? "
-                       "ORDER BY date "
+                       "ORDER BY date DESC "
                        "LIMIT ? "
                        "OFFSET ?")
                   month
@@ -132,7 +132,7 @@
 (defn select-recent-articles [{db :db recent-articles :recent-articles}]
   (jdbc/query db [(str "SELECT name "
                        "FROM article "
-                       "ORDER BY date "
+                       "ORDER BY date DESC "
                        "LIMIT ?")
                   recent-articles]
               :row-fn (comp helpers/parse-article-code :name)))
@@ -144,7 +144,7 @@
 (defn select-archive-months [{db :db}]
   (jdbc/query db [(str "SELECT DISTINCT MONTH(date), YEAR(date), date "
                        "FROM article "
-                       "ORDER BY date")]
+                       "ORDER BY date DESC")]
               :row-fn parse-article-date))
 
 (defn sidebar [this]
