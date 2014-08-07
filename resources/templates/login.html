@@ -2,20 +2,26 @@
 {% block body %}
 <form class="form-horizontal" role="form" action="/login" method="post">
 
-  <div class="form-group">
+  <div class="form-group {% if errors.username %}has-error{% endif %}">
     <label for="inputUsername" class="col-md-2 col-md-offset-3 control-label">Username</label>
     <div class="col-md-4">
-      <input type="text" class="form-control" id="inputUsername" name="username" placeholder="Username">
+      <input type="text" class="form-control" id="inputUsername" name="username" placeholder="Username" value="{{user.username}}">
+      {% if errors.username %}
+        <span class="text-danger">{{errors.username|join:", "}}</span>
+      {% endif %}
     </div>
   </div>
 
-  <div class="form-group">
+  <div class="form-group {% if errors.password %}has-error{% endif %}">
     <label for="inputPassword" class="col-md-2 col-md-offset-3 control-label">Password</label>
     <div class="col-md-4">
       <input type="password" class="form-control" id="inputPassword" name="password" placeholder="Password">
+      {% if errors.password %}
+        <span class="text-danger">{{errors.password|join:", "}}</span>
+      {% endif %}
     </div>
-
   </div>
+
   <div class="form-group">
     <div class="col-md-offset-3 col-md-6 text-center">
       <button type="submit" class="btn btn-default">Sign in</button>

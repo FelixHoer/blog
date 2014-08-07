@@ -3,7 +3,8 @@
             [compojure.route :as route]
             [blog.handler :as handler]
             [blog.auth.auth-datastore :as ds]
-            [compojure.core :refer [defroutes GET POST]]))
+            [compojure.core :refer [defroutes GET POST]]
+            [validateur.validation :as v]))
 
 ;;; constants
 
@@ -29,22 +30,40 @@
           (get-in session [:user :role]))))
 
 
+;;; validation
+
+(def login-validator
+  (v/validation-set
+   (v/presence-of :username)
+   (v/length-of   :username :within (range 1 10))
+   (v/presence-of :password)
+   (v/length-of   :password :within (range 1 100))))
+
+
 ;;; server endpoints
 
-(defn login [req]
-  {:template :login})
+(defn show-login [req & [data]]
+  (let [resp {:template :login}]
+    (if data
+      (assoc resp :data data)
+      resp)))
 
-(defn process-login [{:keys [session form-params component resp] :as req}]
-  (let [username (get form-params "username")
-        password (get form-params "password")]
-    (if-let [user (ds/authenticate (:db component) username password)]
-      (handler/deep-merge (local-redirect req "/")
-                          {:session {:logged-in true
-                                     :user user}
-                           :data {:flash {:info LOGIN_SUCCESS_MSG}}})
-
-      {:template :login
-       :data {:flash {:warning LOGIN_FAIL_MSG}}})))
+(defn process-login [{{u "username" p "password"} :form-params
+                         {db :db} :component
+                         :as req}]
+  (let [input {:username u :password p}
+        validate #(let [errors (login-validator input)]
+                    (if-not (v/valid? errors)
+                      (show-login req {:user input
+                                       :errors errors})))
+        process  #(if-let [user (ds/authenticate db u p)]
+                    (handler/deep-merge (local-redirect req "/")
+                                        {:session {:logged-in true
+                                                   :user user}
+                                         :data {:flash {:info LOGIN_SUCCESS_MSG}}})
+                    (show-login req {:user input
+                                     :flash {:warning LOGIN_FAIL_MSG}}))]
+    (some #(%) [validate process])))
 
 (defn process-logout [req]
   (handler/deep-merge (local-redirect req "/")
@@ -59,7 +78,7 @@
 
 (defroutes auth-routes
   (GET "/login" req
-    (login req))
+    (show-login req))
   (POST "/login" req
     (process-login req))
   (POST "/logout" req
