@@ -12,23 +12,62 @@
 (defn month-name [str-index]
   (get MONTH_NAMES (dec (Integer/parseInt str-index))))
 
-(defn parse-article-code
-  "Extracts the parts of the given code into a map.
-   Format for the code parameter: yyyy-mm-dd[-title-with-dashes]
-   Returns a map with keys :year, :month, :day, :month-name (name of the month),
-   :title (every word is capitalized) and given :code"
-  [code]
-  (let [parts (string/split code #"-")
-        [date-parts title-parts] (split-at 3 parts)]
-    (merge (zipmap [:year :month :day] date-parts)
-           {:month-name (month-name (second date-parts))
-            :title (string/join " " (map string/capitalize title-parts))
-            :code code})))
+(defn date->year+month+day [{:keys [date day month year] :as a}]
+  (if (and (seq date)
+           (or (not (seq year))
+               (not (seq month))
+               (not (seq day))))
+    (merge a (zipmap [:year :month :day]
+                     (string/split date #"-")))
+    a))
 
-(defn build-article-code [{:keys [year month day title]}]
-  (string/join \- [year month day (-> title
-                                      (string/lower-case)
-                                      (string/replace \space \-))]))
+(defn year+month+day->date [{:keys [date day month year] :as a}]
+  (if (and (seq year)
+           (seq month)
+           (seq day)
+           (not (seq date)))
+    (assoc a :date (string/join \- [year month day]))
+    a))
+
+(defn date->string [{date :date :as a}]
+  (if (instance? java.util.Date date)
+    (assoc a :date (-> (java.text.SimpleDateFormat. "yyyy-MM-dd")
+                       (.format date)))
+    a))
+
+(defn date+title->code [{:keys [date title code] :as a}]
+  (if (and (seq date)
+           (seq title)
+           (not (seq code)))
+    (assoc a :code (str date "-" (-> title
+                                     (string/lower-case)
+                                     (string/replace \space \-))))
+    a))
+
+(defn code->date+title [{:keys [date title code] :as a}]
+  (if (and (seq code)
+           (or (not (seq title))
+               (not (seq date))))
+    (let [parts (string/split code #"-")
+          [date-parts title-parts] (split-at 3 parts)]
+      (merge a {:date (string/join \- date-parts)
+                :title (string/join \space (map string/capitalize title-parts))}))
+    a))
+
+(defn month->month-name [{m :month mn :month-name :as a}]
+  (if (and (seq m)
+           (not (seq mn)))
+    (assoc a :month-name (month-name m))
+    a))
+
+(defn complete-article [a]
+  (-> a
+      date->string
+      code->date+title
+      date->year+month+day
+      year+month+day->date
+      date+title->code
+      month->month-name))
 
 
 ;;; pagination

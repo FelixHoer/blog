@@ -3,7 +3,8 @@
             [blog.article.article-datastore :as ds]
             [blog.article.helpers :as helpers]
             [blog.handler :as handler]
-            [compojure.core :refer [defroutes GET POST]]))
+            [compojure.core :refer [defroutes GET POST]]
+            [validateur.validation :as v]))
 
 
 ;;; constants
@@ -21,42 +22,85 @@
 
 ;;; helpers
 
+(defn date-format []
+  (doto (java.text.SimpleDateFormat. "yyyy-MM-dd")
+    (.setLenient false)))
+
 (defn now []
   (java.util.Date.))
+
+(defn now-string []
+  (.format (date-format) (now)))
+
+
+;;; validation
+
+(defn is-date? [d]
+  (try
+    (.parse (date-format) d)
+    true
+    (catch java.text.ParseException e
+      false)))
+
+(def new-article-validator
+  (v/validation-set
+   (v/presence-of :title)
+   (v/validate-when #(contains? % :title)
+     (v/length-of :title :within (range 1 100)))
+
+   (v/presence-of :date)
+   (v/validate-when #(contains? % :date)
+     (v/format-of   :date :format #"\d\d\d\d-\d\d-\d\d"))
+   (v/validate-when #(contains? % :date)
+     (v/validate-by :date is-date?
+                    :message "is not a valid date"))
+
+   (v/presence-of :body)))
+
+(def edit-article-validator
+  (v/validation-set
+   (v/presence-of :body)))
 
 
 ;;; endpoints
 
 ;; compose + save
 
-(defn show-compose-form [req]
+(defn show-compose-form [req & [data]]
   {:template :article-compose
-   :data {:article {:date (now)}}})
+   :data (handler/deep-merge {:article {:date (now-string)}}
+                             data)})
 
-(defn save-new-article [{{n "name" d "date" b "body"} :form-params
+(defn save-new-article [{{t "title" d "date" b "body"} :form-params
                          {db :db} :component
                          :as req}]
-  ; TODO validate
-  (let [code (-> (helpers/parse-article-code d)
-                 (assoc :title n)
-                 (helpers/build-article-code))
-        article {:name code :date d :body b}
-        result (ds/add-article db article)
-        {:keys [url flash]} (if (= :ok result)
-                              {:url (str "/articles/" code)
-                               :flash {:info  SAVE_SUCCESS_MSG}}
-                              {:url "/articles/compose"
-                               :flash {:alert SAVE_FAIL_MSG}})]
-    (handler/deep-merge (auth/local-redirect req url)
-                        {:data {:flash flash}})))
+  (let [input {:title t :date d :body b}
+        validate #(let [errors (new-article-validator input)]
+                    (if-not (v/valid? errors)
+                      (show-compose-form req {:article input
+                                              :errors errors})))
+        process  #(let [article (helpers/complete-article input)
+                        result (ds/add-article db article)]
+                    (if-not (= :ok result)
+                      (show-compose-form req {:article input
+                                              :flash {:info SAVE_FAIL_MSG}})))
+        redirect #(let [{code :code} (helpers/complete-article input)
+                        url (str "/articles/" code)]
+                    (handler/deep-merge (auth/local-redirect req url)
+                                        {:data {:flash {:info SAVE_SUCCESS_MSG}}}))]
+    (some #(%) [validate process redirect])))
 
 ;; edit
 
-(defn show-edit-form [{{code :code} :params {db :db} :component :as req}]
+(defn show-edit-form [{{code :code} :params
+                       {db :db} :component
+                       :as req}
+                      & [data]]
   (let [{[article] :items} (ds/article db code)]
     (if article
       {:template :article-edit
-       :data {:article article}}
+       :data (handler/deep-merge {:article article}
+                                 data)}
       (handler/deep-merge (auth/local-redirect req (str "/articles"))
                           {:data {:flash {:warning EDIT_DOES_NOT_EXIST}}}))))
 
@@ -64,15 +108,19 @@
                      {body "body"} :form-params
                      {db :db} :component
                      :as req}]
-  ; TODO validate
-  (let [result (ds/edit-article db code body)
-        {:keys [url flash]} (if (= :ok result)
-                              {:url (str "/articles/" code)
-                               :flash {:info  EDIT_SUCCESS_MSG}}
-                              {:url (str "/articles/" code "/edit")
-                               :flash {:alert EDIT_FAIL_MSG}})]
-    (handler/deep-merge (auth/local-redirect req url)
-                        {:data {:flash flash}})))
+  (let [input {:body body}
+        validate #(let [errors (edit-article-validator input)]
+                    (if-not (v/valid? errors)
+                      (show-edit-form req {:article input
+                                           :errors errors})))
+        process  #(let [result (ds/edit-article db code body)]
+                    (if-not (= :ok result)
+                      (show-edit-form req {:article input
+                                           :flash {:info EDIT_FAIL_MSG}})))
+        redirect #(let [url (str "/articles/" code)]
+                    (handler/deep-merge (auth/local-redirect req url)
+                                        {:data {:flash {:info EDIT_SUCCESS_MSG}}}))]
+    (some #(%) [validate process redirect])))
 
 ;; delete
 

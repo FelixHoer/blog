@@ -1,7 +1,7 @@
-{% extends "templates/blog_layout.html" %}
-{% block blog-body %}
+{% extends "templates/layout.html" %}
+{% block body %}
 
 <h2>Edit Article</h2>
-{% include "templates/article_form.html" with name-attr="disabled" date-attr="disabled" %}
+{% include "templates/article_form.html" with title-attr="disabled" date-attr="disabled" %}
 
 {% endblock %}

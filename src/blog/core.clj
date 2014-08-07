@@ -8,7 +8,7 @@
             ;; article
             [blog.article.article-handler            :refer [map->ArticleHandler]]
             [blog.article.article-management-handler :refer [map->ArticleManagementHandler]]
-            [blog.article.article-file-datastore     :refer [map->ArticleFileDatastore]]
+            ;[blog.article.article-file-datastore     :refer [map->ArticleFileDatastore]]
             [blog.article.article-sql-datastore      :refer [map->ArticleSQLDatastore]]
             ;; comment
             [blog.comment.comment-handler            :refer [map->CommentHandler]]
@@ -173,6 +173,7 @@
 (defn -main []
   (start))
 
+(selmer.parser/cache-off!)
 ;(start)
 ;(stop)
 ;(restart)

@@ -1,27 +1,36 @@
 <div class="row">
     <form class="form-horizontal" role="form" method="post" action="#">
-      <div class="form-group">
-        <label for="inputName" class="col-sm-2 control-label">Name</label>
+      <div class="form-group {% if errors.title %}has-error{% endif %}">
+        <label for="inputTitle" class="col-sm-2 control-label">Title</label>
         <div class="col-sm-10">
-          <input type="text" class="form-control" id="inputName" placeholder="Name" name="name" value="{{article.title}}" {{name-attr}} />
+          <input type="text" class="form-control" id="inputTitle" placeholder="Title" name="title" value="{{article.title}}" {{title-attr}} />
+          {% if errors.title %}
+            <span class="text-danger">{{errors.title|join:", "}}</span>
+          {% endif %}
         </div>
       </div>
-      <div class="form-group">
+      <div class="form-group {% if errors.date %}has-error{% endif %}">
         <label for="inputDate" class="col-sm-2 control-label">Date</label>
         <div class="col-sm-10">
-          <input type="date" class="form-control" id="inputDate" placeholder="Date" name="date" value="{{article.year}}-{{article.month}}-{{article.day}}" {{date-attr}} />
+          <input type="date" class="form-control" id="inputDate" placeholder="Date" name="date" value="{{article.date}}" {{date-attr}} />
+          {% if errors.date %}
+            <span class="text-danger">{{errors.date|join:", "}}</span>
+          {% endif %}
         </div>
       </div>
-      <div class="form-group">
+      <div class="form-group {% if errors.body %}has-error{% endif %}">
         <label for="inputBody" class="col-sm-2 control-label">Body</label>
         <div class="col-sm-10">
           <textarea class="form-control" id="inputBody" placeholder="Body" name="body" rows="3" {{body-attr}}>{{article.body}}</textarea>
+          {% if errors.body %}
+            <span class="text-danger">{{errors.body|join:", "}}</span>
+          {% endif %}
         </div>
       </div>
       {{CSRF-field|safe}}
       <div class="form-group">
         <div class="col-sm-offset-2 col-sm-10">
-          <button type="submit" class="btn btn-default">Save</button>
+          <button type="submit" class="btn btn-primary">Save</button>
         </div>
       </div>
     </form>

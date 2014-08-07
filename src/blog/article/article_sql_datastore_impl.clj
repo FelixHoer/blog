@@ -1,6 +1,13 @@
 (ns blog.article.article-sql-datastore-impl
   (:require [clojure.java.jdbc :as jdbc]
-            [blog.article.helpers :as helpers]))
+            [blog.article.helpers :as help]))
+
+
+;;; helpers
+
+(defn where-code [code]
+  (let [{d :date t :title} (help/code->date+title {:code code})]
+    ["UPPER(title) = UPPER(?) AND date = ?" t d]))
 
 
 ;;;; setup operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -8,9 +15,9 @@
 (defn create-article-table [{db :db}]
   (jdbc/db-do-commands db
     (jdbc/create-table-ddl :article
-                           [:name "varchar(255)"]
-                           [:date "date"]
-                           [:body "text"]))
+                           [:title "varchar(255)"]
+                           [:date  "date"]
+                           [:body  "text"]))
   :ok)
 
 
@@ -18,47 +25,38 @@
 
 ;;; add article
 
-(defn add-article [{db :db} {:keys [name date body]}]
-  (jdbc/insert! db :article {:name name
-                             :date date
-                             :body body})
+(defn add-article [{db :db} article]
+  (jdbc/insert! db :article (select-keys article [:title :date :body]))
   :ok)
 
 
 ;;; edit article
 
 (defn edit-article [{db :db} code new-body]
-  (jdbc/update! db :article {:body new-body} ["name = ?" code])
+  (jdbc/update! db :article {:body new-body} (where-code code))
   :ok)
 
 
 ;;; delete article
 
 (defn delete-article [{db :db} code]
-  (jdbc/delete! db :article ["name = ?" code])
+  (jdbc/delete! db :article (where-code code))
   :ok)
 
 
 ;;;; usage operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; helpers
-
-(defn build-article-item [{:keys [name body]}]
-  (merge (helpers/parse-article-code name)
-         {:body body}))
-
-
 ;;; paginated main list
 
 (defn select-article-page [{:keys [db articles-per-page]} page-num]
-  (jdbc/query db [(str "SELECT name, body "
+  (jdbc/query db [(str "SELECT title, date, body "
                        "FROM article "
                        "ORDER BY date DESC "
                        "LIMIT ? "
                        "OFFSET ?")
                   articles-per-page
                   (* articles-per-page page-num)]
-              :row-fn build-article-item))
+              :row-fn help/complete-article))
 
 (defn select-article-count [{db :db}]
   (jdbc/query db [(str "SELECT COUNT(*) "
@@ -80,7 +78,7 @@
 ;;; paginated month list
 
 (defn select-article-month-page [{:keys [db articles-per-page]} page-num {:keys [month year]}]
-  (jdbc/query db [(str "SELECT name, body "
+  (jdbc/query db [(str "SELECT title, date, body "
                        "FROM article "
                        "WHERE MONTH(date) = ? AND YEAR(date) = ? "
                        "ORDER BY date DESC "
@@ -90,7 +88,7 @@
                   year
                   articles-per-page
                   (* articles-per-page page-num)]
-              :row-fn build-article-item))
+              :row-fn help/complete-article))
 
 (defn select-article-month-count [{db :db} {:keys [month year]}]
   (jdbc/query db [(str "SELECT COUNT(*) "
@@ -101,10 +99,10 @@
               :row-fn :c1
               :result-set-fn first))
 
-(defn article-month-page [{articles-per-page :articles-per-page :as this} month page-num]
-  (let [date (helpers/parse-article-code month)
-        items (select-article-month-page this page-num date)
-        article-count (select-article-month-count this date)
+(defn article-month-page [{articles-per-page :articles-per-page :as this} date page-num]
+  (let [year+month (help/date->year+month+day {:date date})
+        items (select-article-month-page this page-num year+month)
+        article-count (select-article-month-count this year+month)
         has-next? (< (* (inc page-num) articles-per-page) article-count)
         has-previous? (pos? page-num)]
     (merge {:current-page page-num
@@ -116,52 +114,39 @@
 ;;; single article
 
 (defn select-article [{db :db} code]
-  (jdbc/query db [(str "SELECT name, body "
-                       "FROM article "
-                       "WHERE name = ?")
-                  code]
-              :row-fn build-article-item))
+  (let [[code-clause & params] (where-code code)]
+    (jdbc/query db (concat [(str "SELECT title, date, body "
+                                 "FROM article "
+                                 "WHERE " code-clause)]
+                           params)
+                :row-fn help/complete-article)))
 
 (defn article [this code]
   {:items (select-article this code)
    :current-page 0})
 
 
-;;; sidebar
+;;; article overview
 
 (defn select-recent-articles [{db :db recent-articles :recent-articles}]
-  (jdbc/query db [(str "SELECT name "
+  (jdbc/query db [(str "SELECT title, date "
                        "FROM article "
                        "ORDER BY date DESC "
                        "LIMIT ?")
                   recent-articles]
-              :row-fn (comp helpers/parse-article-code :name)))
+              :row-fn help/complete-article))
 
-(defn parse-article-date [{month :c1 year :c2}]
-  (let [code (format "%4d-%02d" year month)]
-    (helpers/parse-article-code code)))
+(defn parse-article-date [{m :month y :year}]
+  (help/complete-article {:month (format "%02d" m)
+                          :year  (format "%4d"  y)}))
 
 (defn select-archive-months [{db :db}]
-  (jdbc/query db [(str "SELECT DISTINCT MONTH(date), YEAR(date), date "
+  (jdbc/query db [(str "SELECT DISTINCT MONTH(date) as month, YEAR(date) as year "
                        "FROM article "
-                       "ORDER BY date DESC")]
+                       "ORDER BY year, month DESC")]
               :row-fn parse-article-date))
 
-(defn sidebar [this]
+(defn article-overview [this]
   {:recent-articles (select-recent-articles this)
    :archive-months (select-archive-months this)})
 
-
-;;; protocol implementation
-
-(defn article-impl [this code]
-  (merge (article this code)
-         (sidebar this)))
-
-(defn article-page-impl [this page-num]
-  (merge (article-page this page-num)
-         (sidebar this)))
-
-(defn article-month-page-impl [this month page-num]
-  (merge (article-month-page this month page-num)
-         (sidebar this)))

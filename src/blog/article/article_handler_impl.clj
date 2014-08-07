@@ -21,20 +21,26 @@
 ;;; server endpoints
 
 (defn list-articles-page [{db :db :as component} page-num]
-  (let [page (ds/article-page db page-num)]
+  (let [page (ds/article-page db page-num)
+        overview (ds/article-overview db)]
     {:data (merge (apply-plugins-page component page)
-                  (helper/pagination-urls #(str "/articles/page/" %) page))
+                  (helper/pagination-urls #(str "/articles/page/" %) page)
+                  overview)
      :template :article-list}))
 
 (defn list-articles-month-page [{db :db :as component} month page-num]
-  (let [page (ds/article-month-page db month page-num)]
+  (let [page (ds/article-month-page db month page-num)
+        overview (ds/article-overview db)]
     {:data (merge (apply-plugins-page component page)
-                  (helper/pagination-urls #(str "/articles/month/" month "/page/" %) page))
+                  (helper/pagination-urls #(str "/articles/month/" month "/page/" %) page)
+                  overview)
      :template :article-list}))
 
 (defn show-article [{db :db :as component} code]
-  (let [page (ds/article db code)]
-    {:data (apply-plugins-page component page)
+  (let [page (ds/article db code)
+        overview (ds/article-overview db)]
+    {:data (merge (apply-plugins-page component page)
+                  overview)
      :template :article}))
 
 

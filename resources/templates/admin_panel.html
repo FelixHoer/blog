@@ -1,0 +1,13 @@
+{% ifequal session.user.role|str ":admin" %}
+<nav class="navbar navbar-default" role="navigation">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Admin Panel</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li><a href="/articles/compose"><span class="glyphicon glyphicon-align-left"></span> Add Post</a></li>
+      <li><a href="/user"><span class="glyphicon glyphicon-user"></span> Manage Users</a></li>
+    </ul>
+  </div><!-- /.container-fluid -->
+</nav>
+{% endifequal %}
