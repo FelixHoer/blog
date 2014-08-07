@@ -23,7 +23,8 @@
            {:code "2014-04-02-first-post",
             :title "First Post",
             :month-name "April",
-            :day "02", :month "04", :year "2014"})))
+            :day "02", :month "04", :year "2014",
+            :date "2014-04-02"})))
 
   (testing "group-by-month"
     (is (= (group-by-month test-article-names)
@@ -31,18 +32,23 @@
             "2014-04" ["2014-04-15-april-post.md"
                        "2014-04-02-first-post.md"]})))
 
-  (testing "sidebar-recent-article-data"
-    (is (= (sidebar-recent-article-data db-component test-article-names)
+  (testing "recent-article-data"
+    (is (= (recent-article-data db-component test-article-names)
            [{:code "2014-05-01-next-post", :title "Next Post",
-             :month-name "May", :day "01", :month "05", :year "2014"}
+             :month-name "May", :day "01", :month "05", :year "2014",
+             :date "2014-05-01"}
             {:code "2014-04-15-april-post", :title "April Post",
-             :month-name "April", :day "15", :month "04", :year "2014"}
+             :month-name "April", :day "15", :month "04", :year "2014",
+             :date "2014-04-15"}
             {:code "2014-04-02-first-post", :title "First Post",
-             :month-name "April", :day "02", :month "04", :year "2014"}])))
+             :month-name "April", :day "02", :month "04", :year "2014",
+             :date "2014-04-02"}])))
 
-  (testing "sidebar-archive-data"
-    (is (= (sidebar-archive-data db-component test-article-names)
-           [{:code "2014-05", :title "",
-             :month-name "May", :month "05", :year "2014"}
-            {:code "2014-04", :title "",
-             :month-name "April", :month "04", :year "2014"}]))))
+  (testing "archive-data"
+    (is (= (archive-data db-component test-article-names)
+           [{:code "2014-05",
+             :month-name "May", :month "05", :year "2014"
+             :title "", :date "2014-05"}
+            {:code "2014-04",
+             :month-name "April", :month "04", :year "2014"
+             :title "", :date "2014-04"}]))))

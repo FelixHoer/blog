@@ -42,23 +42,21 @@
   ds/ArticleDatastore
     (article [this code]
       (if (= "some-code" code)
-        {:items [{:body "abc"}]
-         :recent-articles "recent-articles"
-         :archive-months "archive-months"}))
+        {:items [{:body "abc"}]}))
     (article-page [this page-num]
       (if (= 0 page-num)
         {:current-page page-num
          :next-page 1
-         :items [{:body "abc"} {:body "def"}]
-         :recent-articles "recent-articles"
-         :archive-months "archive-months"}))
+         :items [{:body "abc"} {:body "def"}]}))
     (article-month-page [this month page-num]
       (if (= 0 page-num)
         {:current-page page-num
          :next-page 1
-         :items [{:body "def"} {:body "ghi"}]
-         :recent-articles "recent-articles"
-         :archive-months "archive-months"})))
+         :items [{:body "def"} {:body "ghi"}]}))
+  ds/ArticleOverviewDatastore
+    (article-overview [this]
+      {:recent-articles "recent-articles"
+       :archive-months "archive-months"}))
 
 ; test endpoints
 

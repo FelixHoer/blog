@@ -6,15 +6,13 @@
   (testing "month-name"
     (is (= (month-name "02")
            "February")))
-  (testing "parse-article-code"
-    (is (let [res (parse-article-code "2014-02")]
-           (and (= (:month-name res) "February")
-                (= (:year res) "2014"))))
-    (is (= (parse-article-code "2014-04-02-first-post")
+  (testing "complete-article"
+    (is (= (complete-article {:code "2014-04-02-first-post"})
            {:code "2014-04-02-first-post",
             :title "First Post",
             :month-name "April",
-            :day "02", :month "04", :year "2014"}))))
+            :day "02", :month "04", :year "2014",
+            :date "2014-04-02"}))))
 
 (deftest pagination
   (testing "paginate"

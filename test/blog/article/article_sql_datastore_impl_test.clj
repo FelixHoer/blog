@@ -21,7 +21,7 @@
                  :ok)))
 
         (testing "add-article"
-          (is (= (add-article com {:name "2014-06-02-title"
+          (is (= (add-article com {:title "Title"
                                    :date (.getTime (java.util.GregorianCalendar. 2014 (dec 6) 2))
                                    :body "body"})
                  :ok)))
@@ -35,7 +35,8 @@
                            :month-name "June",
                            :day "02",
                            :month "06",
-                           :year "2014"}]})))
+                           :year "2014",
+                           :date "2014-06-02"}]})))
 
         (testing "article-month-page"
           (is (= (article-month-page com "2014-06" 0)
@@ -46,7 +47,8 @@
                            :month-name "June",
                            :day "02",
                            :month "06",
-                           :year "2014"}]})))
+                           :year "2014",
+                           :date "2014-06-02"}]})))
 
         (testing "article"
           (is (= (article com "2014-06-02-title")
@@ -57,13 +59,12 @@
                            :month-name "June",
                            :day "02",
                            :month "06",
-                           :year "2014"}]})))
+                           :year "2014",
+                           :date "2014-06-02"}]})))
 
-        (testing "article-impl"
-          (is (= (article-impl com "2014-06-02-title")
-                 {:archive-months [{:code "2014-06",
-                                    :title "",
-                                    :month-name "June",
+        (testing "article-overview"
+          (is (= (article-overview com)
+                 {:archive-months [{:month-name "June",
                                     :month "06",
                                     :year "2014"}],
                   :recent-articles [{:code "2014-06-02-title",
@@ -71,59 +72,8 @@
                                      :month-name "June",
                                      :day "02",
                                      :month "06",
-                                     :year "2014"}],
-                  :items [{:body "body",
-                           :code "2014-06-02-title",
-                           :title "Title",
-                           :month-name "June",
-                           :day "02",
-                           :month "06",
-                           :year "2014"}],
-                  :current-page 0})))
-
-          (testing "article-page-impl"
-            (is (= (article-page-impl com 0)
-                   {:archive-months [{:code "2014-06",
-                                      :title "",
-                                      :month-name "June",
-                                      :month "06",
-                                      :year "2014"}],
-                    :recent-articles [{:code "2014-06-02-title",
-                                       :title "Title",
-                                       :month-name "June",
-                                       :day "02",
-                                       :month "06",
-                                       :year "2014"}],
-                    :current-page 0,
-                    :items [{:body "body",
-                             :code "2014-06-02-title",
-                             :title "Title",
-                             :month-name "June",
-                             :day "02",
-                             :month "06",
-                             :year "2014"}]})))
-
-          (testing "article-month-page-impl"
-            (is (= (article-month-page-impl com "2014-06" 0)
-                   {:archive-months [{:code "2014-06",
-                                      :title "",
-                                      :month-name "June",
-                                      :month "06",
-                                      :year "2014"}],
-                    :recent-articles [{:code "2014-06-02-title",
-                                       :title "Title",
-                                       :month-name "June",
-                                       :day "02",
-                                       :month "06",
-                                       :year "2014"}],
-                    :current-page 0,
-                    :items [{:body "body",
-                             :code "2014-06-02-title",
-                             :title "Title",
-                             :month-name "June",
-                             :day "02",
-                             :month "06",
-                             :year "2014"}]})))))))
+                                     :year "2014",
+                                     :date "2014-06-02"}]})))))))
 
 (deftest sql-datastore-management
   (let [db-spec {:subprotocol "hsqldb"
@@ -142,7 +92,7 @@
                  :ok)))
 
         (testing "add-article"
-          (is (= (add-article com {:name "2014-06-02-title"
+          (is (= (add-article com {:title "Title"
                                    :date (.getTime (java.util.GregorianCalendar. 2014 (dec 6) 2))
                                    :body "body"})
                  :ok)))
@@ -156,7 +106,8 @@
                            :month-name "June",
                            :day "02",
                            :month "06",
-                           :year "2014"}]})))
+                           :year "2014",
+                           :date "2014-06-02"}]})))
 
         (testing "edit-article"
           (is (= (edit-article com "2014-06-02-title" "edited body")
@@ -171,7 +122,8 @@
                            :month-name "June",
                            :day "02",
                            :month "06",
-                           :year "2014"}]})))
+                           :year "2014",
+                           :date "2014-06-02"}]})))
 
         (testing "delete-article"
           (is (= (delete-article com "2014-06-02-title")
