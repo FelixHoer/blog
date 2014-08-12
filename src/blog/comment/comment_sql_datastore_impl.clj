@@ -28,29 +28,6 @@
 
 ;;;; usage operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; validation
-
-(def validation-tests [
-  [#(-> % :name string/blank?) "Name is blank."]
-  [#(-> % :name count (> 255)) "Name is too long."]
-  [#(-> % :text string/blank?) "Text is blank."]])
-
-(defn validation-errors [comment]
-  (let [results (map (fn [[p e]] (if (p comment) e))
-                     validation-tests)]
-    (seq (remove nil? results))))
-
-
-;;; insert comment
-
-(defn insert-comment [{db :db} {:keys [name text time]} article-code]
-  (jdbc/insert! db :comment {:name name
-                             :time time
-                             :text text
-                             :article article-code})
-  :ok)
-
-
 ;;; select comment counts (for multiple articles)
 
 (defn select-comment-count [db article-code]
@@ -88,13 +65,12 @@
 
 ;;; protocol implementation
 
-(defn save-comment [this comment article-code]
-  (if-let [errors (validation-errors comment)]
-    errors
-    (let [result (insert-comment this comment article-code)]
-      (if (= :ok result)
-        nil
-        [result]))))
+(defn save-comment [{db :db} {:keys [name text time]} article-code]
+  (jdbc/insert! db :comment {:name name
+                             :time time
+                             :text text
+                             :article article-code})
+  :ok)
 
 (defn read-comment-counts [this article-codes]
   (select-comment-counts this article-codes))

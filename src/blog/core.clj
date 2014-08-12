@@ -173,7 +173,7 @@
 (defn -main []
   (start))
 
-(selmer.parser/cache-off!)
+(selmer.parser/cache-off!) ; disable caching during development
 ;(start)
 ;(stop)
 ;(restart)

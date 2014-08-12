@@ -4,12 +4,13 @@
             [blog.handler :as handler]
             [clojure.string :as string]
             [blog.text-plugin.plugin :as plugin]
-            [compojure.core :refer [defroutes GET POST]]))
+            [compojure.core :refer [defroutes GET POST]]
+            [validateur.validation :as v]))
 
 
 ;;; constants
 
-(def SAVE_ERROR_MSG "Could not save comment, because: ")
+(def SAVE_FAIL_MSG "Could not save comment!")
 
 
 ;;; helpers
@@ -34,18 +35,36 @@
     (map transform-body comments)))
 
 
+;;; validation
+
+(def new-comment-validator
+  (v/validation-set
+   (v/presence-of :name)
+   (v/length-of   :name :within (range 1 10))
+   (v/presence-of :text)))
+
+
 ;;; server endpoints
 
 (defn save-comment [{db :db} article-code req]
-  (let [comment (cdb/map->Comment {:name (comment-name req)
-                                   :time (now)
-                                   :text (comment-text req)})
-        errors (cdb/save-comment db comment article-code)]
-    (if errors
-      (handler/deep-merge (helper/local-redirect req (str "/articles/" article-code))
-                          {:data {:flash {:warning (str SAVE_ERROR_MSG
-                                                        (string/join " " errors))}}})
-      (helper/local-redirect req (str "/articles/" article-code "#comments")))))
+  (let [input {:name (comment-name req)
+               :text (comment-text req)}
+        validate #(let [errors (new-comment-validator input)]
+                    (if-not (v/valid? errors)
+                      {:comment input
+                       :errors errors}))
+        process  #(let [comment (cdb/map->Comment (assoc input :time (now)))
+                        result (cdb/save-comment db comment article-code)]
+                    (if-not (= :ok result)
+                      {:comment input
+                       :comment-error SAVE_FAIL_MSG}))
+        url (str "/articles/" article-code "#comments")
+        redirect (helper/local-redirect req url)
+        first-flash-data (some #(%) [validate process])]
+    (if first-flash-data
+      (handler/deep-merge-in redirect [:data :flash]
+                             first-flash-data)
+      redirect)))
 
 (defn extend-with-comment-counts [{db :db} {{items :items} :data :as resp}]
   (let [article-codes (map :code items)

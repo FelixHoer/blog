@@ -72,10 +72,6 @@ h6, .h6 {
   margin-top: 40px;
 }
 
-.blog-main .comments form {
-  text-align: right;
-}
-
 .blog-main .comments li {
   list-style: none;
   line-height: 1.1;
