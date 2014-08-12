@@ -56,12 +56,14 @@
 (defn static-response [{static-routes :static-routes} req]
   (static-routes req))
 
-(defn dynamic-response [{:keys [templates next]} req resp]
+(defn dynamic-response [{:keys [templates static-data next]} req resp]
   (cond
    (:template resp)
      (let [{template-key :template data :data} resp
            template (template-key templates)
-           extended-data (assoc data :session (:session req))]
+           extended-data (merge data
+                                static-data
+                                {:session (:session req)})]
        (assoc resp :body (template extended-data)))
    (:body resp)
      resp

@@ -24,6 +24,9 @@
       <div class="container">
         <a class="navbar-brand" href="/">Title</a>
         <p class="navbar-text">Subtitle</p>
+
+        {% include "templates/admin_panel.html" %}
+
         {% if session.user %}
         <form class="navbar-form navbar-right" action="/logout" method="post">
           <button type="submit" class="btn btn-link">Log out.</button>
@@ -55,8 +58,6 @@
         {{flash.info}}
       </div>
       {% endif %}
-
-      {% include "templates/admin_panel.html" %}
 
       {% block body %}
       {% endblock %}

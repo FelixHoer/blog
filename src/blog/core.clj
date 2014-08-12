@@ -75,7 +75,12 @@
                                               :comment-handler]}))
 
 (def theme-handler (map->ThemeHandler {:template-resource-path "templates"
-                                       :static-resource-path "static"}))
+                                       :static-resource-path "static"
+                                       :static-data {:active-components #{:auth
+                                                                          :article
+                                                                          :article-management
+                                                                          :comment
+                                                                          :comment-management}}}))
 
 
 (def DB_SPEC {:subprotocol "hsqldb"
