@@ -35,7 +35,7 @@
 (def login-validator
   (v/validation-set
    (v/presence-of :username)
-   (v/length-of   :username :within (range 1 10))
+   (v/length-of   :username :within (range 1 100))
    (v/presence-of :password)
    (v/length-of   :password :within (range 1 100))))
 
@@ -51,8 +51,8 @@
 (defn process-login [{{u "username" p "password"} :form-params
                          {db :db} :component
                          :as req}]
-  (let [input {:username u :password p}
-        validate #(let [errors (login-validator input)]
+  (let [input {:username u}
+        validate #(let [errors (login-validator (assoc input :password p))]
                     (if-not (v/valid? errors)
                       (show-login req {:user input
                                        :errors errors})))

@@ -54,7 +54,7 @@
 
 (deftest auth-endpoints
   (testing "login"
-    (is (= (login {})
+    (is (= (show-login {})
            {:template :login})))
 
   (testing "enforce-auth"
@@ -86,5 +86,6 @@
                            :session {:some-key 123}
                            :form-params {"username" "username"
                                          "password" "wrong password"}})
-           {:template :login,
-            :data {:flash {:warning "Username and/or Password was incorrect!"}}}))))
+           {:data {:user {:username "username"},
+                   :flash {:warning "Username and/or Password was incorrect!"}},
+            :template :login}))))
