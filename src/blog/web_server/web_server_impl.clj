@@ -154,12 +154,14 @@
 
 ;;; lifecycle methods, start/stop
 
-(defn start [{old-server :server port :port ssl :ssl :as this}]
+(defn start [{old-server :server port :port host :host ssl :ssl :as this}]
   (if old-server
     this
     (let [handler (make-handler this)
           options (merge {:port (or port 80)
                           :join? false}
+                         (if host
+                           {:host host})
                          (if (and ssl (not (:via-reverse-proxy? ssl)))
                            (-> (select-keys ssl #{:ssl-port :keystore :key-password})
                                (assoc :ssl? true))))
