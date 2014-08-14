@@ -3,10 +3,11 @@
 {% for item in items %}
 <div class="row blog-post">
   <div class="date col-sm-2">
-    <h1>{{item.day}}</h1>
+    <h1><a href="/articles/{{item.code}}">{{item.day}}</a></h1>
     <div>{{item.month-name}}</div>
     <div>{{item.year}}</div>
 
+    {% if active-components.article-management %}
     {% ifequal session.user.role|str ":admin" %}
     <div><a class="btn" href="/articles/{{item.code}}/edit"><span class="glyphicon glyphicon-pencil"></span> Edit</a></div>
     <form method="post" action="/articles/{{item.code}}/delete">
@@ -14,10 +15,12 @@
       <button type="submit" class="btn btn-link"><span class="glyphicon glyphicon-remove"></span> Delete</button>
     </form>
     {% endifequal %}
+    {% endif %}
   </div>
   <div class="col-sm-10">
     {{item.body|safe}}
 
+    {% if active-components.comment %}
     <div id="comments" class="comments panel panel-default">
 
       {% if flash.comment-error %}
@@ -83,6 +86,7 @@
       </ul>
 
     </div>
+    {% endif %}
 
   </div>
 </div><!-- /.blog-post -->
