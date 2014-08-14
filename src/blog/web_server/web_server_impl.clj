@@ -12,6 +12,28 @@
             [blog.handler :as h]))
 
 
+;;; insert forwarded port into request-map
+
+(def default-port-header
+  "The default header used in wrap-forwarded-port (x-forwarded-port)."
+  "x-forwarded-port")
+
+(defn wrap-forwarded-port
+  "Middleware that changes the :server-port of the request map to the value present
+  in a request header. This is useful if your application sits behind a
+  reverse proxy or load balancer that handles the SSL transport.
+
+  The header defaults to x-forwarded-port."
+  ([handler]
+     (wrap-forwarded-port handler default-port-header))
+  ([handler header]
+     (fn [req]
+       (let [header  (str/lower-case header)
+             default (:server-port req)
+             port    (Integer/parseInt (get-in req [:headers header] default))]
+         (handler (assoc req :server-port port))))))
+
+
 ;;; debug-tracer
 
 (defn wrap-tracer [handler name]
@@ -144,6 +166,9 @@
           (ssl/wrap-ssl-redirect h (select-keys ssl #{:ssl-port}))
           (if reverse-proxy?
             (ssl/wrap-forwarded-scheme h)
+            h)
+          (if reverse-proxy?
+            (wrap-forwarded-port h)
             h))))
 
 (defn make-handler [this]
