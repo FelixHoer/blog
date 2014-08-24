@@ -7,12 +7,12 @@
 ;;;; setup operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn create-comment-table [{db :db}]
-  (try 
+  (try
     (jdbc/db-do-commands db
       (jdbc/create-table-ddl :comment
                              [:id      "serial"]
                              [:name    "varchar(255)"]
-                             [:time    "datetime"]
+                             [:time    "timestamp"]
                              [:text    "text"]
                              [:article "varchar(255)"]))
     :ok
@@ -24,7 +24,7 @@
 ;;; delete comment
 
 (defn delete-comment [{db :db} comment-id]
-  (jdbc/delete! db :comment ["id = ?" comment-id])
+  (jdbc/delete! db :comment ["id = ?" (Integer/parseInt comment-id)])
   :ok)
 
 
@@ -37,7 +37,7 @@
                        "FROM comment "
                        "WHERE article = ?")
                   article-code]
-              :row-fn :c1 ; first column is the count
+              :row-fn (comp second first vec) ; first column is the count
               :result-set-fn first))
 
 (defmacro with-reused-db-connection [[con db] & forms]

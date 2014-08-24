@@ -61,7 +61,7 @@
 (defn select-article-count [{db :db}]
   (jdbc/query db [(str "SELECT COUNT(*) "
                        "FROM article")]
-              :row-fn :c1
+              :row-fn (comp second first vec)
               :result-set-fn first))
 
 (defn article-page [{articles-per-page :articles-per-page :as this} page-num]
@@ -96,7 +96,7 @@
                        "WHERE MONTH(date) = ? AND YEAR(date) = ?")
                   month
                   year]
-              :row-fn :c1
+              :row-fn (comp second first vec)
               :result-set-fn first))
 
 (defn article-month-page [{articles-per-page :articles-per-page :as this} date page-num]

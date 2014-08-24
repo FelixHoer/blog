@@ -16,7 +16,7 @@
 ;;; helpers
 
 (defn now []
-  (java.util.Date.))
+  (java.sql.Timestamp. (.getTime (java.util.Date.))))
 
 (defn comment-name [{:keys [form-params session]}]
   (or (get-in session [:user :username])
