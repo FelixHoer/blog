@@ -7,14 +7,16 @@
 ;;;; setup operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn create-comment-table [{db :db}]
-  (jdbc/db-do-commands db
-    (jdbc/create-table-ddl :comment
-                           [:id      "serial"]
-                           [:name    "varchar(255)"]
-                           [:time    "datetime"]
-                           [:text    "text"]
-                           [:article "varchar(255)"]))
-  :ok)
+  (try 
+    (jdbc/db-do-commands db
+      (jdbc/create-table-ddl :comment
+                             [:id      "serial"]
+                             [:name    "varchar(255)"]
+                             [:time    "datetime"]
+                             [:text    "text"]
+                             [:article "varchar(255)"]))
+    :ok
+  (catch Exception e :fail)))
 
 
 ;;;; management operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
