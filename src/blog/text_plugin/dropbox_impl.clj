@@ -2,7 +2,7 @@
   (:require [clojure.string :as string]))
 
 (defn dropbox-url [{user-id :user-id}]
-  (str "http://dl.dropboxusercontent.com/u/" user-id "/"))
+  (str "https://dl.dropboxusercontent.com/u/" user-id "/"))
 
 (defn process [this content]
   (string/replace content
