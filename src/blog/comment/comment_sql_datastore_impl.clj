@@ -60,7 +60,7 @@
   (jdbc/query db [(str "SELECT id, name, time, text "
                        "FROM comment "
                        "WHERE article = ? "
-                       "ORDER BY time DESC")
+                       "ORDER BY time ASC")
                   article-code]
               :row-fn spec/map->Comment))
 
