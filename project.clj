@@ -15,6 +15,7 @@
                  [markdown-clj "0.9.41"]
                  [crypto-password "0.1.3"]
                  [org.clojure/java.jdbc "0.3.3"]
-                 [org.hsqldb/hsqldb "2.3.2"]]
+                 [org.hsqldb/hsqldb "2.3.2"]
+                 [postgresql "9.3-1102.jdbc41"]]
   :main blog.core
   :uberjar-name "blog-standalone.jar")
