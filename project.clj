@@ -8,7 +8,7 @@
                  [ring/ring-core "1.2.2"]
                  [ring/ring-jetty-adapter "1.2.2"]
                  [ring/ring-anti-forgery "1.0.0-RC1"]
-                 [ring/ring-ssl "0.2.0"]
+                 [ring/ring-ssl "0.2.1"]
                  [compojure "1.1.6"]
                  [com.novemberain/validateur "2.2.0"]
                  [selmer "0.6.9"]

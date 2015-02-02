@@ -22,44 +22,6 @@
       resp)))
 
 
-;;; redirect http requests to https
-; adapted from: https://github.com/ring-clojure/ring-ssl/blob/master/src/ring/middleware/ssl.clj
-
-(defn- get-request? [{method :request-method}]
-  (or (= method :head)
-      (= method :get)))
-
-(defn- request-url
-  "Return the full URL of the request."
-  [request]
-  (str (-> request :scheme name)
-       "://"
-       (:server-name request)
-       (if-let [port (:server-port request)]
-         (if-not (#{80 443} port) (str ":" port)))
-       (:uri request)
-       (if-let [query (:query-string request)]
-         (str "?" query))))
-
-(defn wrap-ssl-redirect
-  "Middleware that redirects any HTTP request to the equivalent HTTPS URL.
-
-  Accepts the following options:
-
-  :ssl-port - the request should be redirected to this port (defaults to the
-              port of the original request)"
-  [handler & [{:as options}]]
-  (fn [request]
-    (if (= (:scheme request) :https)
-      (handler request)
-      (-> request
-          (assoc :scheme :https)
-          (assoc :server-port (or (:ssl-port options) (:server-port request)))
-          (request-url)
-          (resp/redirect)
-          (resp/status   (if (get-request? request) 301 307))))))
-
-
 ;;; prevent framing (clickjacking)
 
 (defn wrap-anti-framing [handler]
@@ -179,7 +141,7 @@
     handler
     (as-> handler h
           (ssl/wrap-hsts h)
-          (wrap-ssl-redirect h (select-keys ssl #{:ssl-port}))
+          (ssl/wrap-ssl-redirect h (select-keys ssl #{:ssl-port}))
           (if reverse-proxy?
             (ssl/wrap-forwarded-scheme h)
             h))))
