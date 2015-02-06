@@ -76,7 +76,7 @@
           (are [k v] (= (k c) v)
                :name "some author"
                :text "some text")
-          (is (= (delete-comment {:db con} (:id c))
+          (is (= (delete-comment {:db con} (str (:id c)))
                  :ok))
           (is (= (select-comments {:db con} "the-article")
                  [])))))))
