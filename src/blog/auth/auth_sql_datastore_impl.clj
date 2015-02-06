@@ -20,23 +20,27 @@
 ;;;; setup operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn create-auth-table [{db :db}]
+  (try
   (jdbc/db-do-commands db
-    (jdbc/create-table-ddl :auth
-                           [:username  "varchar(255)" "UNIQUE"]
-                           [:key       "varchar(255)"]
-                           [:confirmed "boolean" "DEFAULT FALSE"]
-                           [:role      "varchar(255)" "DEFAULT 'user'"]))
-  :ok)
+      (jdbc/create-table-ddl :auth
+                             [:username  "varchar(255)" "UNIQUE"]
+                             [:key       "varchar(255)"]
+                             [:confirmed "boolean"      "DEFAULT FALSE"]
+                             [:role      "varchar(255)" "DEFAULT 'user'"]))
+    :ok
+    (catch Exception e :fail)))
 
 ;;; add credentials to db
 
 (defn add-user [{db :db} {:keys [username password confirmed role]
                           :or {role :user confirmed false}}]
-  (expect [nil] ; no modified row, just added
-          (jdbc/insert! db :auth {:username username
-                                  :key (password/encrypt password)
-                                  :confirmed confirmed
-                                  :role (name role)})))
+  (try
+    (jdbc/insert! db :auth {:username username
+                            :key (password/encrypt password)
+                            :confirmed confirmed
+                            :role (name role)})
+    :ok
+    (catch Exception e :fail)))
 
 
 ;;;; management operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
