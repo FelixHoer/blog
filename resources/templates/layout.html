@@ -29,12 +29,10 @@
 
         {% if session.user %}
         <form class="navbar-form navbar-right" action="/logout" method="post">
+          Logged in as {{session.user.username}}.
           <button type="submit" class="btn btn-link">Log out.</button>
           {{CSRF-field|safe}}
         </form>
-        <p class="navbar-text navbar-right">
-          Logged in as {{session.user.username}}.
-        </p>
         {% endif %}
       </div>
     </nav>
