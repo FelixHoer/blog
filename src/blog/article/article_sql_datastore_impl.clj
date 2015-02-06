@@ -82,8 +82,8 @@
 (defn select-article-month-page [{:keys [db articles-per-page]} page-num {:keys [month year]}]
   (jdbc/query db [(str "SELECT title, date, body "
                        "FROM article "
-                       "WHERE EXTRACT(MONTH FROM date::DATE)::INT = ?::INT "
-                       "  AND EXTRACT(YEAR  FROM date::DATE)::INT = ?::INT "
+                       "WHERE CAST (EXTRACT(MONTH FROM CAST (date as DATE)) as INT) = CAST (? as INT) "
+                       "  AND CAST (EXTRACT(YEAR  FROM CAST (date as DATE)) as INT) = CAST (? as INT) "
                        "ORDER BY date DESC "
                        "LIMIT ? "
                        "OFFSET ?")
@@ -96,8 +96,8 @@
 (defn select-article-month-count [{db :db} {:keys [month year]}]
   (jdbc/query db [(str "SELECT COUNT(*) "
                        "FROM article "
-                       "WHERE EXTRACT(MONTH FROM date::DATE)::INT = ?::INT "
-                       "  AND EXTRACT(YEAR  FROM date::DATE)::INT = ?::INT")
+                       "WHERE CAST (EXTRACT(MONTH FROM CAST (date as DATE)) as INT) = CAST (? as INT) "
+                       "  AND CAST (EXTRACT(YEAR  FROM CAST (date as DATE)) as INT) = CAST (? as INT)")
                   month
                   year]
               :row-fn (comp second first vec)
@@ -145,8 +145,8 @@
                           :year  (format "%4d"  y)}))
 
 (defn select-archive-months [{db :db}]
-  (jdbc/query db [(str "SELECT DISTINCT EXTRACT(MONTH FROM date::DATE)::INT as month, "
-                       "                EXTRACT(YEAR  FROM date::DATE)::INT as year "
+  (jdbc/query db [(str "SELECT DISTINCT CAST (EXTRACT(MONTH FROM CAST (date as DATE)) as INT) as month, "
+                       "                CAST (EXTRACT(YEAR  FROM CAST (date as DATE)) as INT) as year "
                        "FROM article "
                        "ORDER BY year, month DESC")]
               :row-fn parse-article-date))

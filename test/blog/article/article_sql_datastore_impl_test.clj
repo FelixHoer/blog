@@ -22,7 +22,7 @@
 
         (testing "add-article"
           (is (= (add-article com {:title "Title"
-                                   :date (.getTime (java.util.GregorianCalendar. 2014 (dec 6) 2))
+                                   :date "2014-06-02"
                                    :body "body"})
                  :ok)))
 
@@ -93,7 +93,7 @@
 
         (testing "add-article"
           (is (= (add-article com {:title "Title"
-                                   :date (.getTime (java.util.GregorianCalendar. 2014 (dec 6) 2))
+                                   :date "2014-06-02"
                                    :body "body"})
                  :ok)))
 
