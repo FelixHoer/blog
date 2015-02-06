@@ -1,8 +1,16 @@
 (ns blog.article.article-sql-datastore
-  (:require [blog.article.article-datastore :as spec]
+  (:require [com.stuartsierra.component :as component]
+            [blog.article.article-datastore :as spec]
             [blog.article.article-sql-datastore-impl :as impl]))
 
 (defrecord ArticleSQLDatastore []
+  component/Lifecycle
+    (start [this]
+      (impl/create-article-table this)
+      this)
+    (stop [this]
+      this)
+
   spec/ArticleDatastore
     (article [this code]
       (impl/article this code))

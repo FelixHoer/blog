@@ -13,12 +13,14 @@
 ;;;; setup operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn create-article-table [{db :db}]
-  (jdbc/db-do-commands db
-    (jdbc/create-table-ddl :article
-                           [:title "varchar(255)"]
-                           [:date  "date"]
-                           [:body  "text"]))
-  :ok)
+  (try
+    (jdbc/db-do-commands db
+      (jdbc/create-table-ddl :article
+                             [:title "varchar(255)"]
+                             [:date  "varchar(10)"]
+                             [:body  "text"]))
+    :ok
+    (catch Exception e :fail)))
 
 
 ;;;; management operations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -80,7 +82,8 @@
 (defn select-article-month-page [{:keys [db articles-per-page]} page-num {:keys [month year]}]
   (jdbc/query db [(str "SELECT title, date, body "
                        "FROM article "
-                       "WHERE MONTH(date) = ? AND YEAR(date) = ? "
+                       "WHERE EXTRACT(MONTH FROM date::DATE)::INT = ?::INT "
+                       "  AND EXTRACT(YEAR  FROM date::DATE)::INT = ?::INT "
                        "ORDER BY date DESC "
                        "LIMIT ? "
                        "OFFSET ?")
@@ -93,7 +96,8 @@
 (defn select-article-month-count [{db :db} {:keys [month year]}]
   (jdbc/query db [(str "SELECT COUNT(*) "
                        "FROM article "
-                       "WHERE MONTH(date) = ? AND YEAR(date) = ?")
+                       "WHERE EXTRACT(MONTH FROM date::DATE)::INT = ?::INT "
+                       "  AND EXTRACT(YEAR  FROM date::DATE)::INT = ?::INT")
                   month
                   year]
               :row-fn (comp second first vec)
@@ -141,7 +145,8 @@
                           :year  (format "%4d"  y)}))
 
 (defn select-archive-months [{db :db}]
-  (jdbc/query db [(str "SELECT DISTINCT MONTH(date) as month, YEAR(date) as year "
+  (jdbc/query db [(str "SELECT DISTINCT EXTRACT(MONTH FROM date::DATE)::INT as month, "
+                       "                EXTRACT(YEAR  FROM date::DATE)::INT as year "
                        "FROM article "
                        "ORDER BY year, month DESC")]
               :row-fn parse-article-date))
