@@ -11,7 +11,9 @@ A modular blogging platform written in Clojure. The main goal was to provide dif
 
 * **Authentication** (optional)
   * Stored in the filesystem: The user information is stored in a file. To add a new user the file is modified and those changes have to be transfered to the server.
-  * Stored in a database:
+  * Stored in a database: The user information is stored in a SQL database.
+
+A more detailed documentation can be found in the [doc folder](doc).
 
 ## Example Configurations
 
